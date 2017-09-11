@@ -8,6 +8,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 import java.io.File;
 
 public abstract class CloudAbstractMojo extends AbstractMojo {
+    protected static final String DEFAULT_VERSION = "SYSTEM";
+
     @Component
     protected MojoExecution execution;
 

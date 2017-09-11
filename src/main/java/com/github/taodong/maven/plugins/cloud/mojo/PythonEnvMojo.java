@@ -1,6 +1,6 @@
 package com.github.taodong.maven.plugins.cloud.mojo;
 
-import com.github.taodong.maven.plugins.cloud.utils.IOUtils;
+import com.github.taodong.maven.plugins.cloud.utils.FileIOUtils;
 import com.github.taodong.maven.plugins.cloud.utils.ShellExecutor;
 import com.google.common.base.Joiner;
 import org.apache.commons.io.FileUtils;
@@ -55,7 +55,7 @@ public class PythonEnvMojo extends CloudAbstractMojo{
             ShellExecutor shellExecutor = new ShellExecutor();
             List<String> commands = new ArrayList<>();
 
-            boolean rs = IOUtils.createFolderIfNotExist(envToolDir);
+            boolean rs = FileIOUtils.createFolderIfNotExist(envToolDir);
             if (rs) {
                 getLog().info(Joiner.on(" ").skipNulls().join(envToolDir.getAbsolutePath(), "created."));
             }
