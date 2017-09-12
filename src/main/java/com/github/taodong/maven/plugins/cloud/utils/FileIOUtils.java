@@ -4,12 +4,17 @@ import com.google.common.io.Files;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.fluent.Request;
 
 import java.io.*;
-import java.util.Enumeration;
+import java.util.*;
 
 /**
  * Util functions to handle IO or File related operations
@@ -67,6 +72,43 @@ public class FileIOUtils {
                      InputStream in = compressed.getInputStream(ze)) {
                     IOUtils.copy(in, out);
                 }
+            }
+        }
+    }
+
+    /**
+     * Find all files match given file name in a directory recursively
+     * @param directory - directory
+     * @param filenames - file names to match
+     * @return Collection of match files
+     */
+    public static Collection<File> matchAllFilesByName(final File directory,  final List<String> filenames) {
+        return FileUtils.listFiles(directory, new NameFileFilter(filenames), TrueFileFilter.TRUE);
+    }
+
+    /**
+     * Find all files match given name at the uppermost sub-directory, if a match found, all the sub-directories of
+     * the discovered directory will be ignored
+     * @param directory
+     * @param filenames
+     * @return
+     */
+    public static Collection<File> matchAllFilesByNameFirstFound(final File directory, final List<String> filenames) {
+        Collection<File> found = new ArrayList<>();
+        listFilesInFolderFirstFound(found, directory, new NameFileFilter(filenames));
+        return found;
+    }
+
+    private static void listFilesInFolderFirstFound(final Collection<File> files, final File directory, final IOFileFilter filter) {
+        final File[] found = directory.listFiles((FileFilter) filter);
+
+        if (found != null) {
+            files.addAll(Arrays.asList(found));
+        } else {
+            File[] subDirs = directory.listFiles((FileFilter) DirectoryFileFilter.INSTANCE);
+
+            if (subDirs != null && subDirs.length > 0) {
+                Arrays.stream(subDirs).forEach(subDir -> listFilesInFolderFirstFound(files, subDir, filter));
             }
         }
     }

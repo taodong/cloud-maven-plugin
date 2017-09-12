@@ -10,6 +10,10 @@ import java.io.File;
 public abstract class CloudAbstractMojo extends AbstractMojo {
     protected static final String DEFAULT_VERSION = "SYSTEM";
 
+    protected static final String VIRTUAL_ENV ="VIRENV";
+
+    protected static final String TARGET = "target";
+
     @Component
     protected MojoExecution execution;
 

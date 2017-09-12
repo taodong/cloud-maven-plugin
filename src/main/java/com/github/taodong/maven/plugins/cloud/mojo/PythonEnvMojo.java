@@ -22,8 +22,6 @@ import java.util.stream.Collectors;
 @Mojo(name = "python-env", defaultPhase = LifecyclePhase.INITIALIZE, threadSafe = true)
 public class PythonEnvMojo extends CloudAbstractMojo{
 
-    private static final String virtualEnv="VIRENV";
-
     /**
      * time out for shell commands in minutes
      */
@@ -60,7 +58,7 @@ public class PythonEnvMojo extends CloudAbstractMojo{
                 getLog().info(Joiner.on(" ").skipNulls().join(envToolDir.getAbsolutePath(), "created."));
             }
 
-            File virEnv = new File(envToolDir, virtualEnv);
+            File virEnv = new File(envToolDir, VIRTUAL_ENV);
 
             boolean exitingPython = virEnv.exists() && virEnv.isDirectory();
 
@@ -70,13 +68,13 @@ public class PythonEnvMojo extends CloudAbstractMojo{
             }
 
             if (rebuild || !exitingPython) {
-                commands.add(Joiner.on(" ").skipNulls().join("virtualenv", virtualEnv));
+                commands.add(Joiner.on(" ").skipNulls().join("virtualenv", VIRTUAL_ENV));
             }
 
             getLog().info("Config Python virtual environment...");
 
             // enable Python virtual environment
-            commands.add(Joiner.on("").join("source ", virtualEnv, "/bin/activate"));
+            commands.add(Joiner.on("").join("source ", VIRTUAL_ENV, "/bin/activate"));
 
             if (packages != null && !packages.isEmpty()) {
                 List<String> pipInstalls = packages.parallelStream()
