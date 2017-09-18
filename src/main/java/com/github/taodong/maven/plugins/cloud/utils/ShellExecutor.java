@@ -6,12 +6,48 @@ import org.apache.commons.exec.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.maven.plugin.logging.Log;
 
 public class ShellExecutor {
     // default shell time out at 10 minutes
     private static long defaultTimeout = 10;
+
+    /**
+     * Execute a single command and get output
+     * @param command - command to run
+     * @param workingDirectory - working directory
+     * @param timeout - timeout in seconds
+     * @return command output as string list
+     */
+    public List<String> executeSingleCommandGetOutput(final Log logger, final String command, final File workingDirectory, long timeout) throws Exception {
+        Executor executor = new DefaultExecutor();
+
+        executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());
+
+        if (timeout < 1) {
+            timeout = defaultTimeout;
+        }
+        ExecuteWatchdog watchdog = new ExecuteWatchdog(timeout * 1000);
+        executor.setWatchdog(watchdog);
+        logger.debug(Joiner.on(" ").skipNulls().join("Set command time out for", timeout,"seconds"));
+
+        if (workingDirectory != null) {
+            executor.setWorkingDirectory(workingDirectory);
+            logger.debug(Joiner.on(" ").skipNulls().join("Set working directory as", workingDirectory.getAbsolutePath()));
+        }
+
+        try (StringOutputStream outputStream = new StringOutputStream() ){
+            logger.debug(Joiner.on(" ").skipNulls().join("Executing", command));
+            CommandLine cl = CommandLine.parse(command);
+            PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
+            executor.setStreamHandler(streamHandler);
+            executor.execute(cl);
+            List<String> rs = outputStream.getOutputs();
+            return rs;
+        }
+    }
 
     /**
      * Execute shell commands
@@ -110,6 +146,19 @@ public class ShellExecutor {
             } else {
                 logger.error(line);
             }
+        }
+    }
+
+    private static class StringOutputStream extends  LogOutputStream {
+        private final List<String> outputs = new ArrayList<>();
+
+        @Override
+        protected void processLine(String s, int i) {
+            outputs.add(s);
+        }
+
+        public List<String> getOutputs() {
+            return outputs;
         }
     }
 }

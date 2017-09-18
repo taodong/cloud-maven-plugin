@@ -2,14 +2,10 @@ package com.github.taodong.maven.plugins.cloud.utils;
 
 import com.google.common.io.Files;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.filefilter.DirectoryFileFilter;
-import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.NameFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.io.filefilter.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.fluent.Request;
 
@@ -21,6 +17,10 @@ import java.util.*;
  * @author Tao Dong
  */
 public class FileIOUtils {
+    private static final String STAR_SIGN = "*";
+    private static final String SLASH_SIGN = "/";
+    private static final String BSLASH_SIGN = "\\";
+
     /**
      * Create folder if not exists
      * @param file - Folder to be created
@@ -89,8 +89,8 @@ public class FileIOUtils {
     /**
      * Find all files match given name at the uppermost sub-directory, if a match found, all the sub-directories of
      * the discovered directory will be ignored
-     * @param directory
-     * @param filenames
+     * @param directory - directory
+     * @param filenames - file names to match
      * @return
      */
     public static Collection<File> matchAllFilesByNameFirstFound(final File directory, final List<String> filenames) {
@@ -99,10 +99,47 @@ public class FileIOUtils {
         return found;
     }
 
+    /**
+     * Copy files in a folder into another excluding some files
+     * @param srcDir - source directory
+     * @param destDir - target directory
+     * @param excludes - excluded files
+     */
+    public static void copyDirectoryWithExclusion(File srcDir, File destDir, List<IOFileFilter> excludes) throws IOException{
+        if (excludes != null && !excludes.isEmpty()) {
+            if (excludes.size() == 1) {
+                FileUtils.copyDirectory(srcDir, destDir, excludes.get(0));
+            } else {
+                FileUtils.copyDirectory(srcDir, destDir, new AndFileFilter(excludes));
+            }
+        } else {
+            FileUtils.copyDirectory(srcDir, destDir);
+        }
+    }
+
+    /**
+     * Create IOFileFilter based on file name, currently support prefix, suffix and exact name match
+     * @param filename - file name
+     * @return corresponded IOFileFilter or null is not supported
+     */
+    public static IOFileFilter createIOFileFilter(final String filename) {
+
+        if (StringUtils.startsWith(filename, STAR_SIGN)) {
+            String suffix = StringUtils.remove(filename, STAR_SIGN);
+            return new SuffixFileFilter(suffix);
+        } else if (StringUtils.endsWith(filename, STAR_SIGN)) {
+            String prefix = StringUtils.remove(filename, STAR_SIGN);
+            return new PrefixFileFilter(prefix);
+        } else if (!StringUtils.containsAny(filename, STAR_SIGN, SLASH_SIGN, BSLASH_SIGN)) {
+            return new NameFileFilter(filename);
+        }
+        return null;
+    }
+
     private static void listFilesInFolderFirstFound(final Collection<File> files, final File directory, final IOFileFilter filter) {
         final File[] found = directory.listFiles((FileFilter) filter);
 
-        if (found != null) {
+        if (found != null && found.length > 0) {
             files.addAll(Arrays.asList(found));
         } else {
             File[] subDirs = directory.listFiles((FileFilter) DirectoryFileFilter.INSTANCE);
@@ -112,4 +149,5 @@ public class FileIOUtils {
             }
         }
     }
+
 }

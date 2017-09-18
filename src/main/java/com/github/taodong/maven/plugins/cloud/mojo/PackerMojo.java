@@ -18,6 +18,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Plug in to run packer scripts
+ * @Author Tao Dong
+ */
 @Mojo(name = "packer", defaultPhase = LifecyclePhase.INSTALL, threadSafe = true)
 public class PackerMojo extends CloudAbstractMojo{
 
@@ -50,20 +54,14 @@ public class PackerMojo extends CloudAbstractMojo{
     /**
      * packer arguments
      */
-    @Parameter(property = "arguments", required = false)
-    private String arguments;
+    @Parameter(property = "packer.arguments", required = false)
+    protected String arguments;
 
     /**
      * configuration file to be executed by packer
      */
-    @Parameter(property = "configFiles", required = false)
-    private List<String> configFiles;
-
-    /**
-     * The folder all the cloud configuration files reside
-     */
-    @Parameter(property = "buildFolder", required = true)
-    private String buildFolder;
+    @Parameter(property = "configFiles", required = true)
+    protected List<String> configFiles;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -73,7 +71,11 @@ public class PackerMojo extends CloudAbstractMojo{
 
             List<String> commands = new ArrayList<>();
 
-            File packerFolder = new File(TARGET, buildFolder);
+            File packerFolder = new File(TARGET);
+
+            if (StringUtils.isNotBlank(buildFolder)) {
+                packerFolder = new File(TARGET, buildFolder);
+            }
 
             if (packerFolder.exists() && packerFolder.isDirectory()) {
 
@@ -103,6 +105,7 @@ public class PackerMojo extends CloudAbstractMojo{
                                     FileIOUtils.downloadFileFromUrl(downloadUrl, zipFile);
                                     FileIOUtils.unZipFileTo(zipFile, packerLoc);
                                     if (packerExe.exists()) {
+                                        packerExe.setExecutable(true);
                                         packerCommand = packerExe.getAbsolutePath();
                                     } else {
                                         throw new FileNotFoundException(Joiner.on(" ").skipNulls().join("Error occurs during unzip, packer",

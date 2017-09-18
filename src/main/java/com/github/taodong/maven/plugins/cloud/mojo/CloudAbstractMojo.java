@@ -14,6 +14,8 @@ public abstract class CloudAbstractMojo extends AbstractMojo {
 
     protected static final String TARGET = "target";
 
+    protected static final String SRC = "src";
+
     @Component
     protected MojoExecution execution;
 
@@ -22,6 +24,13 @@ public abstract class CloudAbstractMojo extends AbstractMojo {
      */
     @Parameter(property = "envToolDir", required = true)
     protected File envToolDir;
+
+    /**
+     * The folder all the cloud configuration files reside
+     */
+    @Parameter(property = "buildFolder", required = false, defaultValue = "")
+    protected String buildFolder;
+
 
     protected boolean isPhase(String mvnPhase) {
         String phase = execution.getLifecyclePhase();

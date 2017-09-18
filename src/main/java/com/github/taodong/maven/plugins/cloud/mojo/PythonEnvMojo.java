@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 /**
  * Plug in executor to build Python virtual environment
+ * @Author: Tao Dong
  */
 @Mojo(name = "python-env", defaultPhase = LifecyclePhase.INITIALIZE, threadSafe = true)
 public class PythonEnvMojo extends CloudAbstractMojo{
