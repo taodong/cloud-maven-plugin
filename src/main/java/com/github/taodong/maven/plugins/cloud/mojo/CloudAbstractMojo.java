@@ -1,11 +1,14 @@
 package com.github.taodong.maven.plugins.cloud.mojo;
 
+import com.github.taodong.maven.plugins.cloud.finder.CloudTool;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class CloudAbstractMojo extends AbstractMojo {
     protected static final String DEFAULT_VERSION = "SYSTEM";
@@ -15,6 +18,8 @@ public abstract class CloudAbstractMojo extends AbstractMojo {
     protected static final String TARGET = "target";
 
     protected static final String SRC = "src";
+
+    protected static final Map<CloudTool, Map<String, String>> cloudVariables = new HashMap<>();
 
     @Component
     protected MojoExecution execution;

@@ -38,7 +38,7 @@ public class ShellExecutor {
             logger.debug(Joiner.on(" ").skipNulls().join("Set working directory as", workingDirectory.getAbsolutePath()));
         }
 
-        try (StringOutputStream outputStream = new StringOutputStream() ){
+        try (StringOutputStream outputStream = new StringOutputStream(logger) ){
             logger.debug(Joiner.on(" ").skipNulls().join("Executing", command));
             CommandLine cl = CommandLine.parse(command);
             PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
@@ -151,10 +151,20 @@ public class ShellExecutor {
 
     private static class StringOutputStream extends  LogOutputStream {
         private final List<String> outputs = new ArrayList<>();
+        private final Log logger;
+
+        public StringOutputStream(Log logger) {
+            super(0);
+            this.logger = logger;
+        }
 
         @Override
-        protected void processLine(String s, int i) {
-            outputs.add(s);
+        protected void processLine(String line, int logLevel) {
+            if (logLevel == 0) {
+                outputs.add(line);
+            } else {
+                logger.error(line);
+            }
         }
 
         public List<String> getOutputs() {
