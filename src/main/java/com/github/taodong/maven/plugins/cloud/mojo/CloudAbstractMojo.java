@@ -41,4 +41,20 @@ public abstract class CloudAbstractMojo extends AbstractMojo {
         String phase = execution.getLifecyclePhase();
         return mvnPhase != null && mvnPhase.equalsIgnoreCase(phase);
     }
+
+    protected synchronized boolean saveCloudVariable(final String toolName, final String variableName, final String variableValue) {
+        CloudTool cloudTool = CloudTool.getCloudToolByName(toolName);
+        if (cloudTool != null && cloudTool != CloudTool.UNKNOWN) {
+            Map<String, String> valueMap = cloudVariables.get(cloudTool);
+            if (valueMap == null) {
+                valueMap = new HashMap<>();
+                cloudVariables.put(cloudTool, valueMap);
+            }
+
+            valueMap.put(variableName, variableValue);
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

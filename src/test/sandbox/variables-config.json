@@ -1,0 +1,44 @@
+[
+  {
+    "source": "test.properties",
+    "format": "properties",
+    "variables": [
+      {
+        "name": "username",
+        "toolVars": {
+          "packer": "username",
+          "terraform": "username"
+        }
+      },
+      {
+        "name": "environment",
+        "toolVars": {
+          "packer": "tag.env",
+          "terraform": "environment"
+        }
+      }
+    ]
+  },
+  {
+    "format": "credstash",
+    "variables": [
+      {
+        "name": "dev-db_username",
+        "toolVars": {
+          "packer": "db_username",
+          "terraform": "db_user"
+        }
+      },
+      {
+        "name": "dev-db_password",
+        "toolVars": {
+          "packer": "db_password",
+          "terraform": "db_password"
+        }
+      }
+    ],
+    "sourceConfig": {
+      "region": "us-east-1"
+    }
+  }
+]

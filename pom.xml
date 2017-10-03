@@ -145,6 +145,16 @@
             <artifactId>commons-compress</artifactId>
             <version>1.14</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.9.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.9.1</version>
+        </dependency>
         <!-- Testing -->
         <dependency>
             <groupId>junit</groupId>
