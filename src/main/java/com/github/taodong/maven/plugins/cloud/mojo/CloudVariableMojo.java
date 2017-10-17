@@ -15,7 +15,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-@Mojo(name = "variables", defaultPhase = LifecyclePhase.COMPILE, threadSafe = true)
+@Mojo(name = "variables", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public class CloudVariableMojo extends CloudAbstractMojo {
     final String FORMAT_PROPERTY = "properties";
     final String FORMAT_CREDSTAH = "credstash";

@@ -3,6 +3,7 @@ package com.github.taodong.maven.plugins.cloud.mojo;
 import com.github.taodong.maven.plugins.cloud.utils.FileIOUtils;
 import com.github.taodong.maven.plugins.cloud.utils.ShellExecutor;
 import com.google.common.base.Joiner;
+import org.apache.commons.exec.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
  * Plug in executor to build Python virtual environment
  * @Author: Tao Dong
  */
-@Mojo(name = "python-env", defaultPhase = LifecyclePhase.INITIALIZE, threadSafe = true)
+@Mojo(name = "python-env", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public class PythonEnvMojo extends CloudAbstractMojo{
 
     /**
@@ -52,7 +53,7 @@ public class PythonEnvMojo extends CloudAbstractMojo{
         try {
 
             ShellExecutor shellExecutor = new ShellExecutor();
-            List<String> commands = new ArrayList<>();
+            List<CommandLine> commands = new ArrayList<>();
 
             boolean rs = FileIOUtils.createFolderIfNotExist(envToolDir);
             if (rs) {
@@ -69,23 +70,37 @@ public class PythonEnvMojo extends CloudAbstractMojo{
             }
 
             if (rebuild || !exitingPython) {
-                commands.add(Joiner.on(" ").skipNulls().join("virtualenv", VIRTUAL_ENV));
+                CommandLine cmd = new CommandLine("virtualenv");
+                cmd.addArgument(VIRTUAL_ENV);
+                commands.add(cmd);
             }
 
             getLog().info("Config Python virtual environment...");
 
             // enable Python virtual environment
-            commands.add(Joiner.on("").join("source ", VIRTUAL_ENV, "/bin/activate"));
+            CommandLine cmd = new CommandLine("/bin/bash");
+            cmd.addArgument(Joiner.on("").join("/bin/bash -c 'source ", virEnv.getAbsolutePath(), "/bin/activate'"));
+            commands.add(cmd);
 
             if (packages != null && !packages.isEmpty()) {
-                List<String> pipInstalls = packages.parallelStream()
-                        .map(p -> Joiner.on(" ").skipNulls().join("pip install", p)).collect(Collectors.toList());
+                List<CommandLine> pipInstalls = packages.parallelStream()
+                        .map(p -> {
+                            CommandLine c = new CommandLine("pip");
+                            c.addArgument("install");
+                            c.addArgument(p);
+                            return c;
+                        }).collect(Collectors.toList());
                 commands.addAll(pipInstalls);
             }
 
             if (versionedPackages != null && !versionedPackages.isEmpty()) {
-                List<String> pipVersionedInstalls = versionedPackages.entrySet().parallelStream()
-                        .map(entry -> Joiner.on("").skipNulls().join("pip install ", entry.getKey(), "==", entry.getValue()))
+                List<CommandLine> pipVersionedInstalls = versionedPackages.entrySet().parallelStream()
+                        .map(entry -> {
+                            CommandLine c = new CommandLine("pip");
+                            c.addArgument("install");
+                            c.addArgument(Joiner.on("").skipNulls().join(entry.getKey(), "==", entry.getValue()));
+                            return c;
+                        })
                         .collect(Collectors.toList());
                 commands.addAll(pipVersionedInstalls);
             }

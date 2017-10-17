@@ -21,7 +21,7 @@ public class ShellExecutor {
      * @param timeout - timeout in seconds
      * @return command output as string list
      */
-    public List<String> executeSingleCommandGetOutput(final Log logger, final String command, final File workingDirectory, long timeout) throws Exception {
+    public List<String> executeSingleCommandGetOutput(final Log logger, final CommandLine command, final File workingDirectory, long timeout) throws Exception {
         Executor executor = new DefaultExecutor();
 
         executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());
@@ -40,10 +40,9 @@ public class ShellExecutor {
 
         try (StringOutputStream outputStream = new StringOutputStream(logger) ){
             logger.debug(Joiner.on(" ").skipNulls().join("Executing", command));
-            CommandLine cl = CommandLine.parse(command);
             PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
             executor.setStreamHandler(streamHandler);
-            executor.execute(cl);
+            executor.execute(command);
             List<String> rs = outputStream.getOutputs();
             return rs;
         }
@@ -58,7 +57,7 @@ public class ShellExecutor {
      * @return
      *  1 when all commands ran successfully otherwise -1
      */
-    public int executeCommands(final Log logger, final List<String> commands, final File workingDirectory, long timeout) {
+    public int executeCommands(final Log logger, final List<CommandLine> commands, final File workingDirectory, long timeout) {
         OutputStream stdout = null;
         OutputStream stderr = null;
 
@@ -85,10 +84,9 @@ public class ShellExecutor {
             ExecuteStreamHandler streamHandler = new PumpStreamHandler(stdout, stderr);
             executor.setStreamHandler(streamHandler);
 
-            for (String command : commands) {
+            for (CommandLine command : commands) {
                 logger.debug(Joiner.on(" ").skipNulls().join("Executing", command));
-                CommandLine cl = CommandLine.parse(command);
-                int rs = executor.execute(cl);
+                int rs = executor.execute(command);
                 if (executor.isFailure(rs)) {
                     logger.error(Joiner.on(" ").skipNulls().join("Process stopped due to failed to execute command", command));
                     return -1;

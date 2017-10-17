@@ -2,6 +2,7 @@ package com.github.taodong.maven.plugins.cloud.finder;
 
 import com.github.taodong.maven.plugins.cloud.utils.ShellExecutor;
 import com.google.common.base.Joiner;
+import org.apache.commons.exec.CommandLine;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.logging.Log;
 
@@ -47,8 +48,13 @@ public class CredstashValueFinder implements ValueFinder{
     @Override
     public String lookup(String variableName) throws Exception {
 
-        String command = Joiner.on(" ").skipNulls().join("credstash", StringUtils.isBlank(commandArgument) ? null : commandArgument,
-                "get", variableName);
+//        String command = Joiner.on(" ").skipNulls().join("credstash", StringUtils.isBlank(commandArgument) ? null : commandArgument,
+//                "get", variableName);
+        CommandLine command = new CommandLine("credstash");
+        if (StringUtils.isNotBlank(commandArgument)) {
+            command.addArgument(commandArgument);
+        }
+        command.addArgument("get").addArgument(variableName);
         List<String> rs = executor.executeSingleCommandGetOutput(this.logger, command, null, -1);
 
         if (rs != null && !rs.isEmpty()) {

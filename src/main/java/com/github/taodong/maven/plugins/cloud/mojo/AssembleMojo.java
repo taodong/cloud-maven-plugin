@@ -46,15 +46,16 @@ public class AssembleMojo extends CloudAbstractMojo{
         try {
             boolean ignoreExtra = false;
 
+            getLog().info("Build Folder: " + buildFolder);
+
             if (cloudRoot == null || !cloudRoot.exists()) {
                 cloudRoot = new File(SRC);
                 ignoreExtra = true;
             }
 
-            File targetFolder = null;
-            if (StringUtils.isBlank("buildFolder")) {
-                targetFolder = new File(TARGET);
-            } else {
+            File targetFolder = new File(TARGET);
+            FileIOUtils.createFolderIfNotExist(targetFolder);
+            if (StringUtils.isNotBlank(buildFolder)) {
                 targetFolder = new File(TARGET, buildFolder);
             }
 

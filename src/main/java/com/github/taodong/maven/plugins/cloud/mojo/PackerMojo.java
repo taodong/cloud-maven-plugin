@@ -1,10 +1,13 @@
 package com.github.taodong.maven.plugins.cloud.mojo;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.taodong.maven.plugins.cloud.finder.CloudTool;
 import com.github.taodong.maven.plugins.cloud.utils.FileIOUtils;
 import com.github.taodong.maven.plugins.cloud.utils.OS;
 import com.github.taodong.maven.plugins.cloud.utils.OSFormat;
 import com.github.taodong.maven.plugins.cloud.utils.ShellExecutor;
 import com.google.common.base.Joiner;
+import org.apache.commons.exec.CommandLine;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -14,9 +17,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Plug in to run packer scripts
@@ -69,7 +70,7 @@ public class PackerMojo extends CloudAbstractMojo{
         try {
             String packerCommand = "packer";
 
-            List<String> commands = new ArrayList<>();
+            List<CommandLine> commands = new ArrayList<>();
 
             File packerFolder = new File(TARGET);
 
@@ -78,7 +79,21 @@ public class PackerMojo extends CloudAbstractMojo{
             }
 
             if (packerFolder.exists() && packerFolder.isDirectory()) {
+                StringJoiner sj = new StringJoiner("").add("");
 
+                Map<String, String> packerVars = cloudVariables.get(CloudTool.PACKER);
+                if (packerVars != null && !packerVars.isEmpty()) {
+                    File tempFolder = new File(buildFolder, TEMP);
+                    FileIOUtils.createFolderIfNotExist(tempFolder);
+                    File variableFile = new File(tempFolder, "variables.json");
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.writeValue(variableFile, packerVars);
+                    sj = sj.add("-var-file=").add(variableFile.getAbsolutePath());
+                }
+
+                final String varFileArg = StringUtils.isBlank(sj.toString()) ? null : sj.toString();
+
+                // look for config files
                 Collection<File> images = FileIOUtils.matchAllFilesByNameFirstFound(packerFolder, configFiles);
 
                 if (images != null && !images.isEmpty()) {
@@ -123,7 +138,10 @@ public class PackerMojo extends CloudAbstractMojo{
 
                     File virEnv = new File(envToolDir, VIRTUAL_ENV);
                     if (virEnv.exists() && virEnv.isDirectory()) {
-                        commands.add(Joiner.on("").join("source ", virEnv.getAbsolutePath(), "/bin/activate"));
+                        CommandLine cmd = new CommandLine("/bin/bash");
+                        cmd.addArgument("-c");
+                        cmd.addArgument(Joiner.on("").skipNulls().join("'source ", virEnv.getAbsolutePath(), "/bin/activate'"), true);
+                        commands.add(cmd);
                     }
 
                     executor.executeCommands(getLog(), commands, packerFolder, 0);
@@ -131,10 +149,12 @@ public class PackerMojo extends CloudAbstractMojo{
                     final String exe = packerCommand;
 
                     images.stream().forEach(image -> {
-                        List<String> commandLines = new ArrayList<>();
+                        List<CommandLine> commandLines = new ArrayList<>();
                         String commandLine = Joiner.on(" ").skipNulls().join(exe, "build",
-                                StringUtils.isBlank(arguments) ? null : arguments, image.getName());
-                        commandLines.add(commandLine);
+                                arguments, varFileArg, image.getName());
+                        CommandLine cmd = new CommandLine(exe);
+                        cmd.addArgument("build").addArgument(arguments).addArgument(varFileArg).addArgument(image.getName());
+                        commandLines.add(cmd);
                         executor.executeCommands(getLog(), commandLines, image.getParentFile(), 0);
                     });
 

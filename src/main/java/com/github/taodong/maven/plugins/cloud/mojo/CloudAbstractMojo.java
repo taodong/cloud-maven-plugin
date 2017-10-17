@@ -19,6 +19,8 @@ public abstract class CloudAbstractMojo extends AbstractMojo {
 
     protected static final String SRC = "src";
 
+    protected static final String TEMP = "temp";
+
     protected static final Map<CloudTool, Map<String, String>> cloudVariables = new HashMap<>();
 
     @Component
