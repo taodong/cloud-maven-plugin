@@ -26,19 +26,19 @@ public class AssembleMojo extends CloudAbstractMojo{
 
     protected Map<String, String> paramMap = new HashMap<>();
 
-    @Parameter(property = "cloudRoot", required = false)
+    @Parameter(property = "cloud.assemble.root", required = false)
     private File cloudRoot;
 
     /**
      * extra folders to copy to target
      */
-    @Parameter(property = "extra", required = false)
+    @Parameter(property = "cloud.assemble.extra", required = false)
     private List<File> extra;
 
     /**
      * files not to copy
      */
-    @Parameter(property = "ignoreFiles", required = false)
+    @Parameter(property = "cloud.assemble.ignoreFiles", required = false)
     private List<String> ignoreFiles;
 
     @Override

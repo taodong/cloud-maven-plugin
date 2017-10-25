@@ -15,7 +15,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-@Mojo(name = "variables", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
+@Mojo(name = "variables", defaultPhase = LifecyclePhase.COMPILE, threadSafe = true)
 public class CloudVariableMojo extends CloudAbstractMojo {
     final String FORMAT_PROPERTY = "properties";
     final String FORMAT_CREDSTAH = "credstash";
@@ -23,7 +23,7 @@ public class CloudVariableMojo extends CloudAbstractMojo {
     /**
      * File folder to store build tools of specified version
      */
-    @Parameter(property = "variable.config", required = true)
+    @Parameter(property = "cloud.variable.config", required = true)
     protected File configFile;
 
     @Override

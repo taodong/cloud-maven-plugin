@@ -2,8 +2,6 @@ package com.github.taodong.maven.plugins.cloud.mojo;
 
 import com.github.taodong.maven.plugins.cloud.finder.CloudTool;
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
@@ -23,26 +21,19 @@ public abstract class CloudAbstractMojo extends AbstractMojo {
 
     protected static final Map<CloudTool, Map<String, String>> cloudVariables = new HashMap<>();
 
-    @Component
-    protected MojoExecution execution;
 
     /**
      * File folder to store build tools of specified version
      */
-    @Parameter(property = "envToolDir", required = true)
+    @Parameter(property = "cloud.envToolDir", required = true)
     protected File envToolDir;
 
     /**
      * The folder all the cloud configuration files reside
      */
-    @Parameter(property = "buildFolder", required = false, defaultValue = "")
+    @Parameter(property = "cloud.buildFolder", required = false, defaultValue = "")
     protected String buildFolder;
 
-
-    protected boolean isPhase(String mvnPhase) {
-        String phase = execution.getLifecyclePhase();
-        return mvnPhase != null && mvnPhase.equalsIgnoreCase(phase);
-    }
 
     protected synchronized boolean saveCloudVariable(final String toolName, final String variableName, final String variableValue) {
         CloudTool cloudTool = CloudTool.getCloudToolByName(toolName);

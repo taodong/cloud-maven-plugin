@@ -31,37 +31,37 @@ public class PackerMojo extends CloudAbstractMojo{
     /**
      * Packer version
      */
-    @Parameter(property = "version", required = false, defaultValue = "SYSTEM")
+    @Parameter(property = "cloud.packer.version", required = false, defaultValue = "SYSTEM")
     protected String version;
 
     /**
      * System running packer
      */
-    @Parameter(property = "system", required = false)
+    @Parameter(property = "cloud.packer.system", required = false)
     protected String system;
 
     /**
      * System format
      */
-    @Parameter(property = "systemFormat", required = false)
+    @Parameter(property = "cloud.packer.systemFormat", required = false)
     protected String format;
 
     /**
      * Whether looking for target file recursively
      */
-    @Parameter(property = "recursive", required = false, defaultValue = "false")
+    @Parameter(property = "cloud.packer.recursive", required = false, defaultValue = "false")
     protected Boolean recursive;
 
     /**
      * packer arguments
      */
-    @Parameter(property = "packer.arguments", required = false)
+    @Parameter(property = "cloud.packer.arguments", required = false)
     protected String arguments;
 
     /**
      * configuration file to be executed by packer
      */
-    @Parameter(property = "configFiles", required = true)
+    @Parameter(property = "cloud.packer.configFiles", required = true)
     protected List<String> configFiles;
 
     @Override

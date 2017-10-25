@@ -27,23 +27,4 @@ public class ShellExecutorTests {
         List<String> rs = shellExecutor.executeSingleCommandGetOutput(logger, command, null, 0);
         assertEquals("test", rs.get(0));
     }
-
-    @Test
-    public void testBashCommand() throws Exception {
-        ShellExecutor shellExecutor = new ShellExecutor();
-        ConsoleLogger consoleLogger = new ConsoleLogger(Logger.LEVEL_INFO, "Console");
-        Log logger = new DefaultLog(consoleLogger);
-        File sourceFile = new File("src/test/sandbox/system");
-        File workDir = new File("src/test/sandbox");
-        List<CommandLine> commandLines = new ArrayList<>();
-        CommandLine command = new CommandLine("/bin/bash").addArgument("-c");
-//        command.addArgument(Joiner.on("").skipNulls().join(". ", sourceFile.getAbsolutePath()), false);
-        command.addArgument("env.sh; echo $CLOUD_VARIABLE", false);
-        commandLines.add(command);
-        CommandLine cmd2 = new CommandLine("echo").addArgument("$CLOUD_VARIABLE");
-        commandLines.add(cmd2);
-        shellExecutor.executeCommands(logger, commandLines, null, 0);
-        List<String> rs = shellExecutor.executeSingleCommandGetOutput(logger, cmd2, null, 0);
-        assertEquals("wedge_cloud", rs.get(0));
-    }
 }

@@ -1,51 +1,49 @@
 package com.github.taodong.maven.plugins.cloud.mojo;
 
-import com.github.taodong.maven.plugins.cloud.utils.FileIOUtils;
 import com.github.taodong.maven.plugins.cloud.utils.ShellExecutor;
 import com.google.common.base.Joiner;
 import org.apache.commons.exec.CommandLine;
-import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Plug in executor to build Python virtual environment
+ * Plug in executor to build Python virtual environment. Don't find a way to execute source command
+ * in Java, python plugin has to run separately through command line
  * @Author: Tao Dong
  */
-@Mojo(name = "python-env", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
+@Mojo(name = "python-env", defaultPhase = LifecyclePhase.VALIDATE, threadSafe = true)
 public class PythonEnvMojo extends CloudAbstractMojo{
 
     /**
      * time out for shell commands in minutes
      */
-    @Parameter(property = "shellTimeout", required = false, defaultValue = "10")
+    @Parameter(property = "python.shellTimeout", defaultValue = "10")
     protected long timeout;
 
     /**
      * Python packages to be installed by pip
      */
-    @Parameter(property = "packages", required = false)
+    @Parameter(property = "python.packages")
     private List<String> packages;
 
     /**
      * Python packages with specified version
      */
-    @Parameter(property = "versionedPackages", required = false)
+    @Parameter(property = "python.versionedPackages")
     private Map<String, String> versionedPackages;
 
     /**
      * Force rebuild Python virtual environment or not
      */
-    @Parameter(property = "rebuild", required = false, defaultValue = "false")
+    @Parameter(property = "python.rebuild", defaultValue = "false")
     private Boolean rebuild;
 
     @Override
@@ -55,6 +53,7 @@ public class PythonEnvMojo extends CloudAbstractMojo{
             ShellExecutor shellExecutor = new ShellExecutor();
             List<CommandLine> commands = new ArrayList<>();
 
+            /*
             boolean rs = FileIOUtils.createFolderIfNotExist(envToolDir);
             if (rs) {
                 getLog().info(Joiner.on(" ").skipNulls().join(envToolDir.getAbsolutePath(), "created."));
@@ -81,6 +80,7 @@ public class PythonEnvMojo extends CloudAbstractMojo{
             CommandLine cmd = new CommandLine("/bin/bash");
             cmd.addArgument(Joiner.on("").join("/bin/bash -c 'source ", virEnv.getAbsolutePath(), "/bin/activate'"));
             commands.add(cmd);
+            */
 
             if (packages != null && !packages.isEmpty()) {
                 List<CommandLine> pipInstalls = packages.parallelStream()
