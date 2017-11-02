@@ -83,12 +83,15 @@ public class PackerMojo extends CloudAbstractMojo{
 
                 Map<String, String> packerVars = cloudVariables.get(CloudTool.PACKER);
                 if (packerVars != null && !packerVars.isEmpty()) {
+                    getLog().info("Found extra variables passed through Clound Variable plugin. Generating variables.json.");
                     File tempFolder = new File(buildFolder, TEMP);
                     FileIOUtils.createFolderIfNotExist(tempFolder);
                     File variableFile = new File(tempFolder, "variables.json");
                     ObjectMapper objectMapper = new ObjectMapper();
                     objectMapper.writeValue(variableFile, packerVars);
                     sj = sj.add("-var-file=").add(variableFile.getAbsolutePath());
+                } else {
+                    getLog().info("No extra variables found.");
                 }
 
                 final String varFileArg = StringUtils.isBlank(sj.toString()) ? null : sj.toString();
@@ -112,7 +115,7 @@ public class PackerMojo extends CloudAbstractMojo{
                                 getLog().info(Joiner.on(" ").skipNulls().join("packer version ", version, "found"));
                                 packerCommand = packerExe.getAbsolutePath();
                             } else {
-                                String binZip = Joiner.on("").skipNulls().join("packer_", version, "_", os.getName(), "_", osFormat.getFormat(), ".zip");
+                                String binZip = Joiner.on("").skipNulls().join("packer_", version, "_", os.getPackageName(), "_", osFormat.getFormat(), ".zip");
                                 String downloadUrl = Joiner.on("").skipNulls().join(packerUrl, version, "/", binZip);
                                 File zipFile = new File(envToolDir, binZip);
                                 getLog().info(Joiner.on(" ").skipNulls().join("Downloading Parker from", downloadUrl));
@@ -136,22 +139,12 @@ public class PackerMojo extends CloudAbstractMojo{
                         getLog().info("Use packer installed by user");
                     }
 
-                    File virEnv = new File(envToolDir, VIRTUAL_ENV);
-                    if (virEnv.exists() && virEnv.isDirectory()) {
-                        CommandLine cmd = new CommandLine("/bin/bash");
-                        cmd.addArgument("-c");
-                        cmd.addArgument(Joiner.on("").skipNulls().join("'source ", virEnv.getAbsolutePath(), "/bin/activate'"), true);
-                        commands.add(cmd);
-                    }
-
                     executor.executeCommands(getLog(), commands, packerFolder, 0);
 
                     final String exe = packerCommand;
 
                     images.stream().forEach(image -> {
                         List<CommandLine> commandLines = new ArrayList<>();
-                        String commandLine = Joiner.on(" ").skipNulls().join(exe, "build",
-                                arguments, varFileArg, image.getName());
                         CommandLine cmd = new CommandLine(exe);
                         cmd.addArgument("build").addArgument(arguments).addArgument(varFileArg).addArgument(image.getName());
                         commandLines.add(cmd);

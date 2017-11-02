@@ -6,6 +6,7 @@ import java.util.Map;
 public class CloudVariable {
     private String name;
     private String value;
+    private boolean required = false;
     private Map<String, String> toolVars;
 
     public String getName() {
@@ -30,5 +31,13 @@ public class CloudVariable {
 
     public void setToolVars(Map<String, String> toolVars) {
         this.toolVars = toolVars;
+    }
+
+    public boolean isRequired() {
+        return required;
+    }
+
+    public void setRequired(boolean required) {
+        this.required = required;
     }
 }

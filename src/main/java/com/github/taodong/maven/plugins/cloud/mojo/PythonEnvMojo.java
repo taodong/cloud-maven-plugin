@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * in Java, python plugin has to run separately through command line
  * @Author: Tao Dong
  */
-@Mojo(name = "python-env", defaultPhase = LifecyclePhase.VALIDATE, threadSafe = true)
+@Mojo(name = "python-env", threadSafe = true)
 public class PythonEnvMojo extends CloudAbstractMojo{
 
     /**

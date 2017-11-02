@@ -1,21 +1,20 @@
 package com.github.taodong.maven.plugins.cloud.finder;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Properties;
 
 public class PropertyValueFinder implements ValueFinder{
 
     private Properties properties = new Properties();
 
-    public PropertyValueFinder(String propertyFileLoc) throws Exception {
-        try (InputStream input = new FileInputStream(propertyFileLoc)) {
+    public PropertyValueFinder(File propertyFile) throws IOException {
+        try (InputStream input = new FileInputStream(propertyFile)) {
             properties.load(input);
         }
     }
 
     @Override
-    public String lookup(String variableName) throws Exception{
+    public String lookup(String variableName){
         String value = properties.getProperty(variableName, "");
         return value;
     }

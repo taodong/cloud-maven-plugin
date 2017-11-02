@@ -23,6 +23,7 @@ public class ShellExecutor {
      */
     public List<String> executeSingleCommandGetOutput(final Log logger, final CommandLine command, final File workingDirectory, long timeout) throws Exception {
         Executor executor = new DefaultExecutor();
+        // executor.setExitValues(new int[] {0, 1, 2});
 
         executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());
 
@@ -38,9 +39,10 @@ public class ShellExecutor {
             logger.debug(Joiner.on(" ").skipNulls().join("Set working directory as", workingDirectory.getAbsolutePath()));
         }
 
-        try (StringOutputStream outputStream = new StringOutputStream(logger) ){
-            logger.debug(Joiner.on(" ").skipNulls().join("Executing", command));
-            PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
+        try (StringOutputStream outputStream = new StringOutputStream(logger);
+             OutputStream errStream = new LoggerOutputStream(logger, 1)){
+            logger.debug(Joiner.on(" ").skipNulls().join("Executing", command.toString()));
+            PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream, errStream);
             executor.setStreamHandler(streamHandler);
             executor.execute(command);
             List<String> rs = outputStream.getOutputs();
