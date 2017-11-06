@@ -1,6 +1,7 @@
 package com.github.taodong.maven.plugins.cloud.mojo;
 
 import com.github.taodong.maven.plugins.cloud.finder.CloudTool;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -10,8 +11,6 @@ import java.util.Map;
 
 public abstract class CloudAbstractMojo extends AbstractMojo {
     protected static final String DEFAULT_VERSION = "SYSTEM";
-
-    protected static final String VIRTUAL_ENV ="VIRENV";
 
     protected static final String TARGET = "target";
 
@@ -31,8 +30,14 @@ public abstract class CloudAbstractMojo extends AbstractMojo {
     /**
      * The folder all the cloud configuration files reside
      */
-    @Parameter(property = "cloud.buildFolder", required = false, defaultValue = "")
+    @Parameter(property = "cloud.buildFolder", defaultValue = "")
     protected String buildFolder;
+
+    /**
+     * The executor to build the cloud: the value should be one of following: packer, ansible, terraform, terragrunt
+     */
+    @Parameter(property = "cloud.executor", required = true)
+    protected String cloudExe;
 
 
     protected synchronized boolean saveCloudVariable(final String toolName, final String variableName, final String variableValue) {
@@ -49,5 +54,9 @@ public abstract class CloudAbstractMojo extends AbstractMojo {
         } else {
             return false;
         }
+    }
+
+    protected boolean matchCloudBuilder(final String curExecutor) {
+        return StringUtils.equalsIgnoreCase(StringUtils.trim(cloudExe), StringUtils.trimToNull(curExecutor));
     }
 }

@@ -47,12 +47,6 @@ public class PackerMojo extends CloudAbstractMojo{
     protected String format;
 
     /**
-     * Whether looking for target file recursively
-     */
-    @Parameter(property = "cloud.packer.recursive", required = false, defaultValue = "false")
-    protected Boolean recursive;
-
-    /**
      * packer arguments
      */
     @Parameter(property = "cloud.packer.arguments", required = false)
@@ -67,99 +61,102 @@ public class PackerMojo extends CloudAbstractMojo{
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
 
-        try {
-            String packerCommand = "packer";
+        if (matchCloudBuilder("packer")) {
+            try {
+                String packerCommand = "packer";
 
-            List<CommandLine> commands = new ArrayList<>();
+                List<CommandLine> commands = new ArrayList<>();
 
-            File packerFolder = new File(TARGET);
+                File packerFolder = new File(TARGET);
 
-            if (StringUtils.isNotBlank(buildFolder)) {
-                packerFolder = new File(TARGET, buildFolder);
-            }
-
-            if (packerFolder.exists() && packerFolder.isDirectory()) {
-                StringJoiner sj = new StringJoiner("").add("");
-
-                Map<String, String> packerVars = cloudVariables.get(CloudTool.PACKER);
-                if (packerVars != null && !packerVars.isEmpty()) {
-                    getLog().info("Found extra variables passed through Clound Variable plugin. Generating variables.json.");
-                    File tempFolder = new File(buildFolder, TEMP);
-                    FileIOUtils.createFolderIfNotExist(tempFolder);
-                    File variableFile = new File(tempFolder, "variables.json");
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    objectMapper.writeValue(variableFile, packerVars);
-                    sj = sj.add("-var-file=").add(variableFile.getAbsolutePath());
-                } else {
-                    getLog().info("No extra variables found.");
+                if (StringUtils.isNotBlank(buildFolder)) {
+                    packerFolder = new File(TARGET, buildFolder);
                 }
 
-                final String varFileArg = StringUtils.isBlank(sj.toString()) ? null : sj.toString();
+                if (packerFolder.exists() && packerFolder.isDirectory()) {
+                    StringJoiner sj = new StringJoiner("").add("");
 
-                // look for config files
-                Collection<File> images = FileIOUtils.matchAllFilesByNameFirstFound(packerFolder, configFiles);
-
-                if (images != null && !images.isEmpty()) {
-
-                    final ShellExecutor executor = new ShellExecutor();
-
-                    if (!StringUtils.equalsIgnoreCase(DEFAULT_VERSION, version)) {
-                        OS os = OS.getOS(system);
-                        OSFormat osFormat = OSFormat.getOSFormat(format);
-                        if (os == OS.UNKNOWN || osFormat == OSFormat.UNKNOWN) {
-                            getLog().warn(Joiner.on(" ").skipNulls().join("System", system, format, "is un-supported. Use packer installed by user."));
-                        } else {
-                            File packerLoc = new File(envToolDir, Joiner.on("").skipNulls().join("packer/", version));
-                            File packerExe = new File(packerLoc, "packer");
-                            if (packerExe.exists()) {
-                                getLog().info(Joiner.on(" ").skipNulls().join("packer version ", version, "found"));
-                                packerCommand = packerExe.getAbsolutePath();
-                            } else {
-                                String binZip = Joiner.on("").skipNulls().join("packer_", version, "_", os.getPackageName(), "_", osFormat.getFormat(), ".zip");
-                                String downloadUrl = Joiner.on("").skipNulls().join(packerUrl, version, "/", binZip);
-                                File zipFile = new File(envToolDir, binZip);
-                                getLog().info(Joiner.on(" ").skipNulls().join("Downloading Parker from", downloadUrl));
-                                try {
-                                    FileIOUtils.downloadFileFromUrl(downloadUrl, zipFile);
-                                    FileIOUtils.unZipFileTo(zipFile, packerLoc);
-                                    if (packerExe.exists()) {
-                                        packerExe.setExecutable(true);
-                                        packerCommand = packerExe.getAbsolutePath();
-                                    } else {
-                                        throw new FileNotFoundException(Joiner.on(" ").skipNulls().join("Error occurs during unzip, packer",
-                                                packerExe.getAbsolutePath(), "is not found"));
-                                    }
-                                } catch (Exception e) {
-                                    getLog().warn(Joiner.on("").skipNulls().join("Failed to download or install packer from ", downloadUrl,
-                                            ". Fall back to use packer installed by user"), e);
-                                }
-                            }
-                        }
+                    Map<String, String> packerVars = cloudVariables.get(CloudTool.PACKER);
+                    if (packerVars != null && !packerVars.isEmpty()) {
+                        getLog().info("Found extra variables passed through Clound Variable plugin. Generating variables.json.");
+                        File tempFolder = new File(buildFolder, TEMP);
+                        FileIOUtils.createFolderIfNotExist(tempFolder);
+                        File variableFile = new File(tempFolder, "variables.json");
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        objectMapper.writeValue(variableFile, packerVars);
+                        sj = sj.add("-var-file=").add(variableFile.getAbsolutePath());
                     } else {
-                        getLog().info("Use packer installed by user");
+                        getLog().info("No extra variables found.");
                     }
 
-                    executor.executeCommands(getLog(), commands, packerFolder, 0);
+                    final String varFileArg = StringUtils.isBlank(sj.toString()) ? null : sj.toString();
 
-                    final String exe = packerCommand;
+                    // look for config files
+                    Collection<File> images = FileIOUtils.matchAllFilesByNameFirstFound(packerFolder, configFiles);
 
-                    images.stream().forEach(image -> {
-                        List<CommandLine> commandLines = new ArrayList<>();
-                        CommandLine cmd = new CommandLine(exe);
-                        cmd.addArgument("build").addArgument(arguments).addArgument(varFileArg).addArgument(image.getName());
-                        commandLines.add(cmd);
-                        executor.executeCommands(getLog(), commandLines, image.getParentFile(), 0);
-                    });
+                    if (images != null && !images.isEmpty()) {
 
-                } else {
-                    getLog().info("No matching configuration file found. Packer build skipped.");
+                        final ShellExecutor executor = new ShellExecutor();
+
+                        if (!StringUtils.equalsIgnoreCase(DEFAULT_VERSION, version)) {
+                            OS os = OS.getOS(system);
+                            OSFormat osFormat = OSFormat.getOSFormat(format);
+                            if (os == OS.UNKNOWN || osFormat == OSFormat.UNKNOWN) {
+                                getLog().warn(Joiner.on(" ").skipNulls().join("System", system, format, "is un-supported. Use packer installed by user."));
+                            } else {
+                                File packerLoc = new File(envToolDir, Joiner.on("").skipNulls().join("packer/", version));
+                                File packerExe = new File(packerLoc, "packer");
+                                if (packerExe.exists()) {
+                                    getLog().info(Joiner.on(" ").skipNulls().join("packer version ", version, "found"));
+                                    packerCommand = packerExe.getAbsolutePath();
+                                } else {
+                                    String binZip = Joiner.on("").skipNulls().join("packer_", version, "_", os.getPackageName(), "_", osFormat.getFormat(), ".zip");
+                                    String downloadUrl = Joiner.on("").skipNulls().join(packerUrl, version, "/", binZip);
+                                    File zipFile = new File(envToolDir, binZip);
+                                    getLog().info(Joiner.on(" ").skipNulls().join("Downloading Parker from", downloadUrl));
+                                    try {
+                                        FileIOUtils.downloadFileFromUrl(downloadUrl, zipFile);
+                                        FileIOUtils.unZipFileTo(zipFile, packerLoc);
+                                        if (packerExe.exists()) {
+                                            packerExe.setExecutable(true);
+                                            packerCommand = packerExe.getAbsolutePath();
+                                        } else {
+                                            throw new FileNotFoundException(Joiner.on(" ").skipNulls().join("Error occurs during unzip, packer",
+                                                    packerExe.getAbsolutePath(), "is not found"));
+                                        }
+                                    } catch (Exception e) {
+                                        getLog().warn(Joiner.on("").skipNulls().join("Failed to download or install packer from ", downloadUrl,
+                                                ". Fall back to use packer installed by user"), e);
+                                    }
+                                }
+                            }
+                        } else {
+                            getLog().info("Use packer installed by user");
+                        }
+
+                        executor.executeCommands(getLog(), commands, packerFolder, 0);
+
+                        final String exe = packerCommand;
+
+                        images.stream().forEach(image -> {
+                            List<CommandLine> commandLines = new ArrayList<>();
+                            CommandLine cmd = new CommandLine(exe);
+                            cmd.addArgument("build").addArguments(arguments, true).addArguments(varFileArg, true).addArgument(image.getName());
+                            commandLines.add(cmd);
+                            executor.executeCommands(getLog(), commandLines, image.getParentFile(), 0);
+                        });
+
+                    } else {
+                        getLog().info("No matching configuration file found. Packer build skipped.");
+                    }
                 }
+
+            } catch (Exception e) {
+                getLog().error(Joiner.on(" ").skipNulls().join("Failed to run task packer:", e.getMessage()));
+                throw new MojoFailureException("Failed to run task packer", e);
             }
-
-        } catch (Exception e) {
-            getLog().error(Joiner.on(" ").skipNulls().join("Failed to run task packer:", e.getMessage()));
-            throw new MojoFailureException("Failed to run task packer", e);
+        } else {
+            getLog().info(Joiner.on(" ").skipNulls().join("Skip packer build. Cloud executor is set to", cloudExe));
         }
-
     }
 }
