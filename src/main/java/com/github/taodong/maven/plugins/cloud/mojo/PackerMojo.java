@@ -98,7 +98,7 @@ public class PackerMojo extends CloudAbstractMojo{
 
                         final ShellExecutor executor = new ShellExecutor();
 
-                        if (!StringUtils.equalsIgnoreCase(DEFAULT_VERSION, version)) {
+                        if (!StringUtils.equalsIgnoreCase(DEFAULT_VERSION, StringUtils.trim(version))) {
                             OS os = OS.getOS(system);
                             OSFormat osFormat = OSFormat.getOSFormat(format);
                             if (os == OS.UNKNOWN || osFormat == OSFormat.UNKNOWN) {
