@@ -6,6 +6,7 @@ public enum CloudTool {
     PACKER,
     ANSIBLE,
     TERRAFORM,
+    TERRAGRUNT,
     UNKNOWN;
 
     public static CloudTool getCloudToolByName(String name) {

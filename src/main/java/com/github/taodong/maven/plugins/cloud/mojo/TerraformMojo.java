@@ -18,6 +18,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Plug in to run terraform scripts
@@ -52,14 +53,20 @@ public class TerraformMojo extends CloudAbstractMojo {
     @Parameter(property = "cloud.terraform.arguments")
     protected String arguments;
 
-    // TODO: handle execution in multiple folders
+    /**
+     * subfolder contains modules
+     */
+    @Parameter(property = "cloud.terraform.modules", required = true)
+    protected List<String> modules;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (matchCloudBuilder("terraform")) {
             try {
                 String terraformCommand = "terraform";
 
-                List<CommandLine> commands = new ArrayList<>();
+                final List<CommandLine> commands = new ArrayList<>();
+                List<File> moduleFolders = new ArrayList<>();
 
                 File terraformFolder = new File(TARGET);
 
@@ -68,6 +75,22 @@ public class TerraformMojo extends CloudAbstractMojo {
                 }
 
                 if (terraformFolder.exists() && terraformFolder.isDirectory()) {
+                    // if modules, match up sub-folder with module name
+                    if (modules != null && !modules.isEmpty()) {
+                        final File parentFolder = terraformFolder;
+                        moduleFolders = modules.stream().filter(module -> {
+                            File f = new File(parentFolder, module);
+                            boolean isFolder = f.exists() && f.isDirectory();
+                            if (!isFolder) {
+                                getLog().warn(Joiner.on(" ").skipNulls().join("Module folder", module, "doesn't exist.", "Skips"));
+                            }
+                            return isFolder;
+                        }).map(module -> new File(parentFolder, module)).collect(Collectors.toList());
+                    }
+
+                    if (moduleFolders.isEmpty()) {
+                        moduleFolders.add(terraformFolder);
+                    }
 
                     // download terraform if needed
                     if (!StringUtils.equalsIgnoreCase(DEFAULT_VERSION, StringUtils.trim(version))) {
@@ -134,7 +157,8 @@ public class TerraformMojo extends CloudAbstractMojo {
 
                     final ShellExecutor executor = new ShellExecutor();
 
-                    executor.executeCommands(getLog(), commands, terraformFolder, 0);
+                    moduleFolders.stream().forEach(module -> executor.executeCommands(getLog(), commands, module, 0));
+
                 }
             } catch (Exception e) {
                 getLog().error(Joiner.on(" ").skipNulls().join("Failed to run task terraform:", e.getMessage()));
