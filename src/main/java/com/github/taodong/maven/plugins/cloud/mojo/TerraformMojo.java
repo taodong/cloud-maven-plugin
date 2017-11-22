@@ -108,7 +108,7 @@ public class TerraformMojo extends CloudAbstractMojo {
                                 String binZip = Joiner.on("").skipNulls().join("terraform_", version, "_", os.getPackageName(), "_", osFormat.getFormat(), ".zip");
                                 String downloadUrl = Joiner.on("").skipNulls().join(terraformUrl, version, "/", binZip);
                                 File zipFile = new File(envToolDir, binZip);
-                                getLog().info(Joiner.on(" ").skipNulls().join("Downloading Parker from", downloadUrl));
+                                getLog().info(Joiner.on(" ").skipNulls().join("Downloading terraform from", downloadUrl));
                                 try {
                                     FileIOUtils.downloadFileFromUrl(downloadUrl, zipFile);
                                     FileIOUtils.unZipFileTo(zipFile, terraformLoc);

@@ -94,7 +94,6 @@ public class TerragruntMojo  extends CloudAbstractMojo {
                         moduleFolders.add(terragruntFolder);
                     }
 
-                    // TODO: fix download
                     // download terragrunt if needed
                     if (!StringUtils.equalsIgnoreCase(DEFAULT_VERSION, StringUtils.trim(version))) {
                         OS os = OS.getOS(system);
@@ -108,18 +107,18 @@ public class TerragruntMojo  extends CloudAbstractMojo {
                                 getLog().info(Joiner.on(" ").skipNulls().join("terragrunt version ", version, "found"));
                                 terragruntCommand = terragruntExe.getAbsolutePath();
                             } else {
-                                String binZip = Joiner.on("").skipNulls().join("terragrunt_", version, "_", os.getPackageName(), "_", osFormat.getFormat(), ".zip");
-                                String downloadUrl = Joiner.on("").skipNulls().join(terragruntUrl, version, "/", binZip);
-                                File zipFile = new File(envToolDir, binZip);
-                                getLog().info(Joiner.on(" ").skipNulls().join("Downloading Parker from", downloadUrl));
+                                String scriptName = Joiner.on("").skipNulls().join("terragrunt_","_", os.getPackageName(), "_", osFormat.getFormat());
+                                String downloadUrl = Joiner.on("").skipNulls().join(terragruntUrl, version, "/", scriptName);
+                                File terraFile = new File(envToolDir, scriptName);
+                                getLog().info(Joiner.on(" ").skipNulls().join("Downloading terragrunt from", downloadUrl));
                                 try {
-                                    FileIOUtils.downloadFileFromUrl(downloadUrl, zipFile);
-                                    FileIOUtils.unZipFileTo(zipFile, terragruntLoc);
+                                    FileIOUtils.createFolderIfNotExist(terragruntLoc);
+                                    FileIOUtils.downloadFileFromUrl(downloadUrl, terragruntExe);
                                     if (terragruntExe.exists()) {
                                         terragruntExe.setExecutable(true);
                                         terragruntCommand = terragruntExe.getAbsolutePath();
                                     } else {
-                                        throw new FileNotFoundException(Joiner.on(" ").skipNulls().join("Error occurs during unzip, terragrunt",
+                                        throw new FileNotFoundException(Joiner.on(" ").skipNulls().join("Error occurs during downloading, terragrunt",
                                                 terragruntExe.getAbsolutePath(), "is not found"));
                                     }
                                 } catch (Exception e) {
