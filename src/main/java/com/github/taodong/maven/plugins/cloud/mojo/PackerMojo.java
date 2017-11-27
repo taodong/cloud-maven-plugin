@@ -58,6 +58,12 @@ public class PackerMojo extends CloudAbstractMojo{
     @Parameter(property = "cloud.packer.configFiles", required = true)
     protected List<String> configFiles;
 
+    /**
+     * packer command timeout in seconds, default 15 min
+     */
+    @Parameter(property = "cloud.packer.commandTimeOut", required = false, defaultValue = "900")
+    protected long timeout;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -134,7 +140,7 @@ public class PackerMojo extends CloudAbstractMojo{
                             getLog().info("Use packer installed by user");
                         }
 
-                        executor.executeCommands(getLog(), commands, packerFolder, 0);
+                        executor.executeCommands(getLog(), commands, packerFolder, timeout);
 
                         final String exe = packerCommand;
 
@@ -143,7 +149,7 @@ public class PackerMojo extends CloudAbstractMojo{
                             CommandLine cmd = new CommandLine(exe);
                             cmd.addArgument("build").addArguments(arguments, true).addArguments(varFileArg, true).addArgument(image.getName());
                             commandLines.add(cmd);
-                            executor.executeCommands(getLog(), commandLines, image.getParentFile(), 0);
+                            executor.executeCommands(getLog(), commandLines, image.getParentFile(), timeout);
                         });
 
                     } else {

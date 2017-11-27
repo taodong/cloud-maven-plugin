@@ -59,6 +59,12 @@ public class TerraformMojo extends CloudAbstractMojo {
     @Parameter(property = "cloud.terraform.modules", required = true)
     protected List<String> modules;
 
+    /**
+     * ansible command timeout in seconds, default 15 min
+     */
+    @Parameter(property = "cloud.terraform.commandTimeOut", defaultValue = "900")
+    protected long timeout;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (matchCloudBuilder("terraform")) {
@@ -157,7 +163,7 @@ public class TerraformMojo extends CloudAbstractMojo {
 
                     final ShellExecutor executor = new ShellExecutor();
 
-                    moduleFolders.stream().forEach(module -> executor.executeCommands(getLog(), commands, module, 0));
+                    moduleFolders.stream().forEach(module -> executor.executeCommands(getLog(), commands, module, timeout));
 
                 }
             } catch (Exception e) {

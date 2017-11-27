@@ -61,6 +61,12 @@ public class TerragruntMojo  extends CloudAbstractMojo {
     @Parameter(property = "cloud.terragrunt.modules", required = true)
     protected List<String> modules;
 
+    /**
+     * terragrunt command timeout in seconds, default 15 min
+     */
+    @Parameter(property = "cloud.terragrunt.commandTimeOut", defaultValue = "900")
+    protected long timeout;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (matchCloudBuilder("terragrunt")) {
@@ -159,7 +165,7 @@ public class TerragruntMojo  extends CloudAbstractMojo {
 
                     final ShellExecutor executor = new ShellExecutor();
 
-                    moduleFolders.stream().forEach(module -> executor.executeCommands(getLog(), commands, module, 0));
+                    moduleFolders.stream().forEach(module -> executor.executeCommands(getLog(), commands, module, timeout));
 
                 }
             } catch (Exception e) {

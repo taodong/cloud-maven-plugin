@@ -47,6 +47,12 @@ public class AnsibleMojo extends CloudAbstractMojo {
     @Parameter(property = "cloud.ansible.playbookFile")
     protected String playbookFile;
 
+    /**
+     * ansible command timeout in seconds, default 15 min
+     */
+    @Parameter(property = "cloud.ansible.commandTimeOut", required = false, defaultValue = "900")
+    protected long timeout;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (matchCloudBuilder("ansible")) {
@@ -103,7 +109,7 @@ public class AnsibleMojo extends CloudAbstractMojo {
                     commands.add(commandLine);
 
                     final ShellExecutor executor = new ShellExecutor();
-                    executor.executeCommands(getLog(), commands, workFolder, 0);
+                    executor.executeCommands(getLog(), commands, workFolder, timeout);
                 }
             } catch (Exception e) {
                 getLog().error(Joiner.on(" ").skipNulls().join("Failed to run task ansible:", e.getMessage()));
