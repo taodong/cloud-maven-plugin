@@ -64,6 +64,7 @@ public class ShellExecutor {
         OutputStream stderr = null;
 
         Executor executor = new DefaultExecutor();
+        // Executor executor = new DefaultExecuteResultHandler();
 
         executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());
 

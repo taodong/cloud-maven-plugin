@@ -39,6 +39,24 @@ public abstract class CloudAbstractMojo extends AbstractMojo {
     @Parameter(property = "cloud.executor", required = true)
     protected String cloudExe;
 
+    /**
+     * Only generates linux shell script when true, otherwise plug in will try to run commands directly through desired executor
+     */
+    @Parameter(property = "cloud.genScriptOnly", defaultValue = "true")
+    protected boolean genScriptOnly;
+
+    /**
+     * file contains beginning part of customized shell script, only used when genScriptOnly equals true
+     */
+    @Parameter(property = "cloud.scriptHead")
+    protected File customScriptHead;
+
+    /**
+     * file contains ending part of customized shell script, only used when genScriptOnly equals true
+     */
+    @Parameter(property = "cloud.scriptTail")
+    protected File customScriptTail;
+
 
     protected synchronized boolean saveCloudVariable(final String toolName, final String variableName, final String variableValue) {
         CloudTool cloudTool = CloudTool.getCloudToolByName(toolName);

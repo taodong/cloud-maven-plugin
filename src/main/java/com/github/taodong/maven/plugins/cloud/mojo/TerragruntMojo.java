@@ -29,7 +29,9 @@ import java.util.stream.Collectors;
  */
 @Mojo(name = "terragrunt", defaultPhase = LifecyclePhase.INSTALL, threadSafe = true)
 public class TerragruntMojo  extends CloudAbstractMojo {
-    private static final String terragruntUrl = "https://github.com/gruntwork-io/terragrunt/releases/download/v";
+    private static final String terragruntUrl = "https://github.com/gruntwork-io/terragrunt/releases/download/";
+
+    private static final String TERRAGRUNT_HEADER = "general-head.txt";
 
     /**
      * Packer version
@@ -113,8 +115,8 @@ public class TerragruntMojo  extends CloudAbstractMojo {
                                 getLog().info(Joiner.on(" ").skipNulls().join("terragrunt version ", version, "found"));
                                 terragruntCommand = terragruntExe.getAbsolutePath();
                             } else {
-                                String scriptName = Joiner.on("").skipNulls().join("terragrunt_","_", os.getPackageName(), "_", osFormat.getFormat());
-                                String downloadUrl = Joiner.on("").skipNulls().join(terragruntUrl, version, "/", scriptName);
+                                String scriptName = Joiner.on("").skipNulls().join("terragrunt_", os.getPackageName(), "_", osFormat.getFormat());
+                                String downloadUrl = Joiner.on("").skipNulls().join(terragruntUrl, StringUtils.startsWith(version, "v") ? null : "v",version, "/", scriptName);
                                 File terraFile = new File(envToolDir, scriptName);
                                 getLog().info(Joiner.on(" ").skipNulls().join("Downloading terragrunt from", downloadUrl));
                                 try {
@@ -142,7 +144,7 @@ public class TerragruntMojo  extends CloudAbstractMojo {
                         getLog().info("Found extra variables passed through Clound Variable plugin. Generating variables.tfvars.");
                         File tempFolder = new File(buildFolder, TEMP);
                         FileIOUtils.createFolderIfNotExist(tempFolder);
-                        File variableFile = new File(tempFolder, "variables.tfvars");
+                        File variableFile = new File(tempFolder, "variables.tfvars.json");
                         ObjectMapper objectMapper = new ObjectMapper();
                         objectMapper.writeValue(variableFile, terragruntVars);
                         sj = sj.add("-var-file=").add(variableFile.getAbsolutePath());
@@ -155,6 +157,8 @@ public class TerragruntMojo  extends CloudAbstractMojo {
                     CommandLine commandLine = new CommandLine(terragruntCommand);
                     if (StringUtils.isNotBlank(arguments)) {
                         commandLine.addArguments(arguments, true);
+                    } else {
+                        commandLine.addArguments("apply");
                     }
 
                     if (StringUtils.isNotBlank(varFileArg)) {
@@ -165,7 +169,38 @@ public class TerragruntMojo  extends CloudAbstractMojo {
 
                     final ShellExecutor executor = new ShellExecutor();
 
-                    moduleFolders.stream().forEach(module -> executor.executeCommands(getLog(), commands, module, timeout));
+                    final boolean genScript = genScriptOnly;
+                    final List<String> content = new ArrayList<>();
+
+                    if (genScript) {
+                        if (customScriptHead.exists()) {
+                            content.addAll(FileIOUtils.readFromFile(customScriptHead.getAbsolutePath(), false));
+                        } else {
+                            content.addAll(FileIOUtils.readFromFile(TERRAGRUNT_HEADER, true));
+                        }
+                    }
+
+                    moduleFolders.stream().forEach(module -> {
+                        if (genScript) {
+                            content.add(Joiner.on(" ").skipNulls().join("pushd", module.getAbsolutePath(), " > /dev/null"));
+                            for (CommandLine cl : commands) {
+                                content.add(cl.toString());
+                            }
+                            content.add("popd > /dev/null");
+                        } else {
+                            executor.executeCommands(getLog(), commands, module, timeout);
+                        }
+                    });
+
+                    if (genScript) {
+                        if (customScriptTail.exists()) {
+                            content.addAll(FileIOUtils.readFromFile(customScriptTail.getAbsolutePath(), false));
+                        }
+
+                        FileIOUtils.generateShellScript(terragruntFolder, "build.sh", content);
+
+                        getLog().info(Joiner.on(" ").skipNulls().join("Generated script build.sh under", terragruntFolder.getAbsolutePath()));
+                    }
 
                 }
             } catch (Exception e) {

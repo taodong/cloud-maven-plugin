@@ -28,6 +28,8 @@ public class PackerMojo extends CloudAbstractMojo{
 
     private static final String packerUrl = "https://releases.hashicorp.com/packer/";
 
+    private static final String PACKER_HEADER = "general-head.txt";
+
     /**
      * Packer version
      */
@@ -71,7 +73,7 @@ public class PackerMojo extends CloudAbstractMojo{
             try {
                 String packerCommand = "packer";
 
-                List<CommandLine> commands = new ArrayList<>();
+                final List<String> commands = new ArrayList<>();
 
                 File packerFolder = new File(TARGET);
 
@@ -140,17 +142,42 @@ public class PackerMojo extends CloudAbstractMojo{
                             getLog().info("Use packer installed by user");
                         }
 
-                        executor.executeCommands(getLog(), commands, packerFolder, timeout);
-
                         final String exe = packerCommand;
 
+                        final boolean genScript = genScriptOnly;
+
+                        if (genScript) {
+                            if (customScriptHead.exists()) {
+                                commands.addAll(FileIOUtils.readFromFile(customScriptHead.getAbsolutePath(), false));
+                            } else {
+                                commands.addAll(FileIOUtils.readFromFile(PACKER_HEADER, true));
+                            }
+                        }
+
                         images.stream().forEach(image -> {
-                            List<CommandLine> commandLines = new ArrayList<>();
                             CommandLine cmd = new CommandLine(exe);
                             cmd.addArgument("build").addArguments(arguments, true).addArguments(varFileArg, true).addArgument(image.getName());
-                            commandLines.add(cmd);
-                            executor.executeCommands(getLog(), commandLines, image.getParentFile(), timeout);
+                            if (genScript) {
+                                commands.add(Joiner.on(" ").skipNulls().join("pushd", image.getParent(), " > /dev/null"));
+                                commands.add(cmd.toString());
+                                commands.add("popd > /dev/null");
+                            } else {
+                                List<CommandLine> commandLines = new ArrayList<>();
+                                commandLines.add(cmd);
+                                executor.executeCommands(getLog(), commandLines, image.getParentFile(), timeout);
+                            }
+
                         });
+
+                        if (genScript) {
+                            if (customScriptTail.exists()) {
+                                commands.addAll(FileIOUtils.readFromFile(customScriptTail.getAbsolutePath(), false));
+                            }
+
+                            FileIOUtils.generateShellScript(packerFolder, "build.sh", commands);
+
+                            getLog().info(Joiner.on(" ").skipNulls().join("Generated script build.sh under", packerFolder.getAbsolutePath()));
+                        }
 
                     } else {
                         getLog().info("No matching configuration file found. Packer build skipped.");

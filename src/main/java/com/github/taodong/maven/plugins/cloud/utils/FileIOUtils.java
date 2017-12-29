@@ -1,5 +1,6 @@
 package com.github.taodong.maven.plugins.cloud.utils;
 
+import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
@@ -134,6 +135,80 @@ public class FileIOUtils {
             return new NameFileFilter(filename);
         }
         return null;
+    }
+
+    /**
+     * Create shell scripting file
+     * @param workingFolder - the folder file resides
+     * @param fileName - file name
+     * @param commands - commands to add into file
+     * @throws IOException
+     */
+    public static void generateShellScript(final File workingFolder, final String fileName, final List<String> commands) throws IOException {
+        createFolderIfNotExist(workingFolder);
+        File script = new File(workingFolder, fileName);
+        script.setExecutable(true);
+
+        try (FileWriter fw = new FileWriter(script, false);
+            BufferedWriter bw = new BufferedWriter(fw)) {
+            for (String command : commands) {
+                if (StringUtils.isNotBlank(command)) {
+                    bw.write(command);
+                    bw.newLine();
+                }
+            }
+        }
+
+        script.setExecutable(true);
+
+    }
+
+    /**
+     * Read content from a file
+     * @param fileLoc - location of file to read
+     * @param inClassPath - is the file in class path
+     * @return
+     * @throws IOException
+     */
+    public static List<String> readFromFile(String fileLoc, boolean inClassPath) throws IOException {
+
+        InputStream in = null;
+        try {
+            if (inClassPath) {
+                in = FileIOUtils.class.getClassLoader().getResourceAsStream("fileLoc");
+                if (in == null) {
+                    throw new FileNotFoundException(Joiner.on(" ").skipNulls().join(fileLoc, "is not found in class path"));
+                }
+            } else {
+                File file = new File(fileLoc);
+                if (!file.exists() || file.isDirectory()) {
+                    throw new FileNotFoundException(Joiner.on(" ").skipNulls().join(file.getAbsolutePath(), "is not found"));
+                }
+
+                in = new FileInputStream(file);
+            }
+
+
+            List<String> content = new ArrayList<>();
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+
+                String line;
+
+                while ((line = br.readLine()) != null) {
+                    content.add(line);
+                }
+            }
+
+            return content;
+        } finally {
+            if (in != null) {
+                try {
+                  in.close();
+                } catch (Exception e) {
+                    // Do nothing
+                }
+            }
+        }
     }
 
     private static void listFilesInFolderFirstFound(final Collection<File> files, final File directory, final IOFileFilter filter) {

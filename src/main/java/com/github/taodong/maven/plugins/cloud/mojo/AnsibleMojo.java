@@ -29,6 +29,8 @@ import java.util.Map;
 @Mojo(name = "ansible", defaultPhase = LifecyclePhase.INSTALL, threadSafe = true)
 public class AnsibleMojo extends CloudAbstractMojo {
 
+    private static final String ANSIBLE_HEADER = "general-head.txt";
+
     /**
      * ansible executable: ansible or ansible-playbook
      */
@@ -106,10 +108,31 @@ public class AnsibleMojo extends CloudAbstractMojo {
                         getLog().info("No extra variables found.");
                     }
 
-                    commands.add(commandLine);
+                    if (genScriptOnly) {
+                        List<String> content = new ArrayList<>();
+                        if (customScriptHead.exists()) {
+                            content.addAll(FileIOUtils.readFromFile(customScriptHead.getAbsolutePath(), false));
+                        } else {
+                            content.addAll(FileIOUtils.readFromFile(ANSIBLE_HEADER, true));
+                        }
 
-                    final ShellExecutor executor = new ShellExecutor();
-                    executor.executeCommands(getLog(), commands, workFolder, timeout);
+                        content.add(Joiner.on(" ").skipNulls().join("pushd", workFolder.getAbsolutePath(), " > /dev/null"));
+                        content.add(commandLine.toString());
+                        content.add("popd > /dev/null");
+
+                        if (customScriptTail.exists()) {
+                            content.addAll(FileIOUtils.readFromFile(customScriptTail.getAbsolutePath(), false));
+                        }
+
+                        FileIOUtils.generateShellScript(workFolder, "build.sh", content);
+
+                        getLog().info(Joiner.on(" ").skipNulls().join("Generated script build.sh under", workFolder.getAbsolutePath()));
+
+                    } else {
+                        commands.add(commandLine);
+                        final ShellExecutor executor = new ShellExecutor();
+                        executor.executeCommands(getLog(), commands, workFolder, timeout);
+                    }
                 }
             } catch (Exception e) {
                 getLog().error(Joiner.on(" ").skipNulls().join("Failed to run task ansible:", e.getMessage()));

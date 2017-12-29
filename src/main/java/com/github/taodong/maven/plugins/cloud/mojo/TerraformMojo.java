@@ -29,6 +29,8 @@ public class TerraformMojo extends CloudAbstractMojo {
 
     private static final String terraformUrl = "https://releases.hashicorp.com/terraform/";
 
+    private static final String TERRAFORM_HEADER = "general-head.txt";
+
     /**
      * Packer version
      */
@@ -163,7 +165,38 @@ public class TerraformMojo extends CloudAbstractMojo {
 
                     final ShellExecutor executor = new ShellExecutor();
 
-                    moduleFolders.stream().forEach(module -> executor.executeCommands(getLog(), commands, module, timeout));
+                    final boolean genScript = genScriptOnly;
+                    final List<String> content = new ArrayList<>();
+
+                    if (genScript) {
+                        if (customScriptHead.exists()) {
+                            content.addAll(FileIOUtils.readFromFile(customScriptHead.getAbsolutePath(), false));
+                        } else {
+                            content.addAll(FileIOUtils.readFromFile(TERRAFORM_HEADER, true));
+                        }
+                    }
+
+                    moduleFolders.stream().forEach(module -> {
+                        if (genScript) {
+                            content.add(Joiner.on(" ").skipNulls().join("pushd", module.getAbsolutePath(), " > /dev/null"));
+                            for (CommandLine cl : commands) {
+                                content.add(cl.toString());
+                            }
+                            content.add("popd > /dev/null");
+                        } else {
+                            executor.executeCommands(getLog(), commands, module, timeout);
+                        }
+                    });
+
+                    if (genScript) {
+                        if (customScriptTail.exists()) {
+                            content.addAll(FileIOUtils.readFromFile(customScriptTail.getAbsolutePath(), false));
+                        }
+
+                        FileIOUtils.generateShellScript(terraformFolder, "build.sh", content);
+
+                        getLog().info(Joiner.on(" ").skipNulls().join("Generated script build.sh under", terraformFolder.getAbsolutePath()));
+                    }
 
                 }
             } catch (Exception e) {
