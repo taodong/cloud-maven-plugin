@@ -71,12 +71,12 @@ After installation, you can add cloud-maven-plugin configuration into the pom.xm
        ...
 </build>
 ```
-##Usage
-- [Configure plug-in](###Configure plug-in)
-- [Assemble project](###Assemble project)
-- [Import custom variables](###Import custom variables)
-- [Run Ansible scripts](###Run Ansible scripts)
-###Configure plug-in
+## Usage
+- [Configure plug-in](#config-plug-in)
+- [Assemble project](#assemble-project)
+- [Run Ansible scripts](#run-ansible-scripts)
+- [Import custom variables](#import-custom-variables)
+### Configure plug-in
 There are two required parameters need to be defined either in configuration block or passed through mvn command line. They are envToolDir and cloudExe.
 ```xml
 <configuration>
@@ -133,10 +133,10 @@ Executor ansible is use to run Ansible scripts. It will run ansible installed in
 All supported parameters include:
 - exec (default: ansible-playbook, maven command line variable: cloud.ansible.exe): which command to run using Ansible, the value can be either ansible-playbook or ansible.
 - arguments (default: null, maven command line variable: cloud.ansible.arguments): command arguments to append after ansible/ansible-playbook command
-- playbookFile (default: null, maven command line variable: cloud.ansible.playbookFile): used when cloud.ansible.exe is set to ansible-playbook. The plugin will run the any match files using first matched rule. Please refer [Misc](##Misc) section for details of first matched rule.
+- playbookFile (default: null, maven command line variable: cloud.ansible.playbookFile): used when cloud.ansible.exe is set to ansible-playbook. The plugin will run the any match files using first matched rule. Please refer [Misc](#misc) section for details of first matched rule.
 - timeout (default: 900, maven command line variable: cloud.ansible.commandTimeOut): used when cloud.genScriptOnly is false. Timeout in seconds for maven build.
 ### Import custom variables
-Variables can be passed into plugin and applied during build process by using variable executor. All variables need to be defined in a json file. Please refer to [Variable value look up](##Variable value look up) section for specification.
+Variables can be passed into plugin and applied during build process by using variable executor. All variables need to be defined in a json file. Please refer to [Variable value look up](#variable-value-look-up) section for specification.
 ```xml
 <execution>
    <id>variables</id>
@@ -152,10 +152,10 @@ Variables can be passed into plugin and applied during build process by using va
 All supported parameters include:
 - configFile (default: null, maven command line variable: cloud.variable.config): a json file with all cloud variables defined.
 - lookupFolder (default: src, maven command line variable: cloud.variable.lookupFolder): the folder to locate the configFile, by default the code will try to find the configFile in src folder.
-##Variable value look up
+## Variable value look up
 TODO:
-##Misc
-####First Matched rule
+## Misc
+#### First Matched rule
 when matching files, the plugin will apply the first matched rule. The search will traversal into sub-folders recursively until it reaches a folder a matched file is found, then all the sub-folders of that folder will be ignored.
 ```
 src
