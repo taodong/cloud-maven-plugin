@@ -319,5 +319,5 @@ src
 
 ```
 For the file structure above, if we look for main.yml, the files returned after applying first matched rule are src/sample_2/main.yml and src/sample_3/main.yml
-##License
+## License
 MIT
