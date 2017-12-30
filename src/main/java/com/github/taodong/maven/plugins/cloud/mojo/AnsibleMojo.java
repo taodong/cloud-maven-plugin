@@ -59,7 +59,7 @@ public class AnsibleMojo extends CloudAbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (matchCloudBuilder("ansible")) {
             try {
-                boolean isPlaybook = StringUtils.equalsAnyIgnoreCase("ansible-playbook");
+                boolean isPlaybook = StringUtils.equalsAnyIgnoreCase("ansible-playbook", exec);
                 String ansibleCommand = isPlaybook ? "ansible-playbook" : "ansible";
                 List<CommandLine> commands = new ArrayList<>();
 
