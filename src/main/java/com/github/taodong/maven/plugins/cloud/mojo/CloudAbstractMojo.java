@@ -1,6 +1,8 @@
 package com.github.taodong.maven.plugins.cloud.mojo;
 
 import com.github.taodong.maven.plugins.cloud.finder.CloudTool;
+import com.google.common.base.Joiner;
+import org.apache.commons.exec.CommandLine;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -17,6 +19,8 @@ public abstract class CloudAbstractMojo extends AbstractMojo {
     protected static final String SRC = "src";
 
     protected static final String TEMP = "temp";
+
+    protected static final String SHELL_HEADER = "#!/bin/bash";
 
     protected static final Map<CloudTool, Map<String, String>> cloudVariables = new HashMap<>();
 
@@ -76,5 +80,14 @@ public abstract class CloudAbstractMojo extends AbstractMojo {
 
     protected boolean matchCloudBuilder(final String curExecutor) {
         return StringUtils.equalsIgnoreCase(StringUtils.trim(cloudExe), StringUtils.trimToNull(curExecutor));
+    }
+
+    protected String commandLine2Str(CommandLine commandLine) {
+        if (commandLine == null) {
+            return "";
+        }
+
+        String[] arr = commandLine.toStrings();
+        return Joiner.on(" ").skipNulls().join(arr);
     }
 }

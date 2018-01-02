@@ -147,10 +147,10 @@ public class PackerMojo extends CloudAbstractMojo{
                         final boolean genScript = genScriptOnly;
 
                         if (genScript) {
-                            if (customScriptHead.exists()) {
+                            if (customScriptHead != null && customScriptHead.exists()) {
                                 commands.addAll(FileIOUtils.readFromFile(customScriptHead.getAbsolutePath(), false));
                             } else {
-                                commands.addAll(FileIOUtils.readFromFile(PACKER_HEADER, true));
+                                commands.add(SHELL_HEADER);
                             }
                         }
 
@@ -159,7 +159,7 @@ public class PackerMojo extends CloudAbstractMojo{
                             cmd.addArgument("build").addArguments(arguments, true).addArguments(varFileArg, true).addArgument(image.getName());
                             if (genScript) {
                                 commands.add(Joiner.on(" ").skipNulls().join("pushd", image.getParent(), " > /dev/null"));
-                                commands.add(cmd.toString());
+                                commands.add(commandLine2Str(cmd));
                                 commands.add("popd > /dev/null");
                             } else {
                                 List<CommandLine> commandLines = new ArrayList<>();
@@ -170,7 +170,7 @@ public class PackerMojo extends CloudAbstractMojo{
                         });
 
                         if (genScript) {
-                            if (customScriptTail.exists()) {
+                            if (customScriptTail != null && customScriptTail.exists()) {
                                 commands.addAll(FileIOUtils.readFromFile(customScriptTail.getAbsolutePath(), false));
                             }
 

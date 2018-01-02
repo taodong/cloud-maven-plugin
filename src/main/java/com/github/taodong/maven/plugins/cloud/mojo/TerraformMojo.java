@@ -169,10 +169,10 @@ public class TerraformMojo extends CloudAbstractMojo {
                     final List<String> content = new ArrayList<>();
 
                     if (genScript) {
-                        if (customScriptHead.exists()) {
+                        if (customScriptHead != null && customScriptHead.exists()) {
                             content.addAll(FileIOUtils.readFromFile(customScriptHead.getAbsolutePath(), false));
                         } else {
-                            content.addAll(FileIOUtils.readFromFile(TERRAFORM_HEADER, true));
+                            content.add(SHELL_HEADER);
                         }
                     }
 
@@ -180,7 +180,7 @@ public class TerraformMojo extends CloudAbstractMojo {
                         if (genScript) {
                             content.add(Joiner.on(" ").skipNulls().join("pushd", module.getAbsolutePath(), " > /dev/null"));
                             for (CommandLine cl : commands) {
-                                content.add(cl.toString());
+                                content.add(commandLine2Str(cl));
                             }
                             content.add("popd > /dev/null");
                         } else {
@@ -189,7 +189,7 @@ public class TerraformMojo extends CloudAbstractMojo {
                     });
 
                     if (genScript) {
-                        if (customScriptTail.exists()) {
+                        if (customScriptTail != null && customScriptTail.exists()) {
                             content.addAll(FileIOUtils.readFromFile(customScriptTail.getAbsolutePath(), false));
                         }
 

@@ -1,14 +1,17 @@
 package com.github.taodong.maven.plugins.cloud.mojo;
 
-import com.github.taodong.maven.plugins.cloud.utils.ShellExecutor;
+import com.github.taodong.maven.plugins.cloud.utils.FileIOUtils;
 import com.google.common.base.Joiner;
 import org.apache.commons.exec.CommandLine;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,17 +19,15 @@ import java.util.stream.Collectors;
 
 /**
  * Plug in executor to build Python virtual environment. Don't find a way to execute source command
- * in Java, python plugin has to run separately through command line
+ * in Java, this plugin only export scripts
  * @Author: Tao Dong
  */
-@Mojo(name = "python-env", threadSafe = true)
+@Mojo(name = "python-env", defaultPhase = LifecyclePhase.INSTALL, threadSafe = true,
+        requiresDependencyResolution = ResolutionScope.RUNTIME)
 public class PythonEnvMojo extends CloudAbstractMojo{
+    private static final String VIRTUAL_ENV = "python-env";
 
-    /**
-     * time out for shell commands in minutes
-     */
-    @Parameter(property = "python.shellTimeout", defaultValue = "10")
-    protected long timeout;
+    private static final String PYTHON_HEADER = "general-head.txt";
 
     /**
      * Python packages to be installed by pip
@@ -50,10 +51,9 @@ public class PythonEnvMojo extends CloudAbstractMojo{
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
 
-            ShellExecutor shellExecutor = new ShellExecutor();
+            File targetFolder = new File(TARGET);
             List<CommandLine> commands = new ArrayList<>();
 
-            /*
             boolean rs = FileIOUtils.createFolderIfNotExist(envToolDir);
             if (rs) {
                 getLog().info(Joiner.on(" ").skipNulls().join(envToolDir.getAbsolutePath(), "created."));
@@ -69,18 +69,21 @@ public class PythonEnvMojo extends CloudAbstractMojo{
             }
 
             if (rebuild || !exitingPython) {
-                CommandLine cmd = new CommandLine("virtualenv");
+                CommandLine cmd = new CommandLine("pushd").addArguments(new String[]{envToolDir.getAbsolutePath(), ">", "/dev/null"});
+                commands.add(cmd);
+                cmd = new CommandLine("virtualenv");
                 cmd.addArgument(VIRTUAL_ENV);
+                commands.add(cmd);
+                cmd = new CommandLine("popd").addArguments(new String[]{">", "/dev/null"});
                 commands.add(cmd);
             }
 
             getLog().info("Config Python virtual environment...");
 
             // enable Python virtual environment
-            CommandLine cmd = new CommandLine("/bin/bash");
-            cmd.addArgument(Joiner.on("").join("/bin/bash -c 'source ", virEnv.getAbsolutePath(), "/bin/activate'"));
+            CommandLine cmd = new CommandLine("source");
+            cmd.addArgument(Joiner.on("").join(virEnv.getAbsolutePath(), "/bin/activate'"));
             commands.add(cmd);
-            */
 
             if (packages != null && !packages.isEmpty()) {
                 List<CommandLine> pipInstalls = packages.parallelStream()
@@ -105,11 +108,13 @@ public class PythonEnvMojo extends CloudAbstractMojo{
                 commands.addAll(pipVersionedInstalls);
             }
 
-            int srs = shellExecutor.executeCommands(getLog(), commands, envToolDir, timeout);
+            final List<String> content = new ArrayList<>();
+            content.add(SHELL_HEADER);
 
-            if (srs < 0) {
-                throw new MojoFailureException("Failed to create Python virtual environment");
-            }
+            commands.stream().forEach(commd -> content.add(commandLine2Str(commd)));
+            FileIOUtils.generateShellScript(targetFolder, "python-env.sh", content);
+
+            getLog().info("Generated script python-env.sh under target folder.");
 
         } catch (Exception e) {
             getLog().error(Joiner.on(" ").skipNulls().join("Failed to run task python-env:", e.getMessage()));

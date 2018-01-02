@@ -110,17 +110,17 @@ public class AnsibleMojo extends CloudAbstractMojo {
 
                     if (genScriptOnly) {
                         List<String> content = new ArrayList<>();
-                        if (customScriptHead.exists()) {
+                        if (customScriptHead != null && customScriptHead.exists()) {
                             content.addAll(FileIOUtils.readFromFile(customScriptHead.getAbsolutePath(), false));
                         } else {
-                            content.addAll(FileIOUtils.readFromFile(ANSIBLE_HEADER, true));
+                            content.add(SHELL_HEADER);
                         }
 
                         content.add(Joiner.on(" ").skipNulls().join("pushd", workFolder.getAbsolutePath(), " > /dev/null"));
-                        content.add(commandLine.toString());
+                        content.add(commandLine2Str(commandLine));
                         content.add("popd > /dev/null");
 
-                        if (customScriptTail.exists()) {
+                        if (customScriptTail != null && customScriptTail.exists()) {
                             content.addAll(FileIOUtils.readFromFile(customScriptTail.getAbsolutePath(), false));
                         }
 

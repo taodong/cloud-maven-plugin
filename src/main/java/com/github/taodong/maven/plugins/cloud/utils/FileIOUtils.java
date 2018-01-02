@@ -9,6 +9,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.fluent.Request;
+import org.codehaus.plexus.classworlds.ClassWorld;
 
 import java.io.*;
 import java.util.*;
