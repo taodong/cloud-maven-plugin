@@ -79,6 +79,7 @@ After installation, you can add cloud-maven-plugin configuration into the pom.xm
 - [Run Terraform scripts](#run-terraform-scripts)
 - [Run Terragrunt scripts](#run-terragrunt-scripts)
 - [Import custom variables](#import-custom-variables)
+- [Use Python virtual environment](#use-python-virtual-environment)
 ### Configure plug-in
 There are two required parameters need to be defined either in configuration block or passed through mvn command line. They are envToolDir and cloudExe.
 _Sample Configuration:_
@@ -227,6 +228,31 @@ _Sample Configuration:_
 All supported parameters include:
 - configFile (default: null, maven command line variable: cloud.variable.config): a json file with all cloud variables defined.
 - lookupFolder (default: src, maven command line variable: cloud.variable.lookupFolder): the folder to locate the configFile, by default the code will try to find the configFile in src folder.
+### Use Python virtual environment
+In curtain situation, you might want to use different version of Ansible to test your project. If you installed Ansible through Pip in your local machine, this plugin has a python-env executor built in to provide some leverage of using Python virtual environment. However due to limitation of running Linux build in command such as "source" through Java runtime, this executor works only when cloud.genScriptOnly is set to true. A successful output of this executor will be a shell script "python-env.sh" under target folder. User has to manually executor this script to enable Python virtual environment.
+_Sample Configuration:_
+```xml
+<execution>
+   <id>python-env</id>
+   <goals>
+       <goal>python-env</goal>
+   </goals>
+   <configuration>
+       <packages>
+           <param>requests</param>
+           <param>lxml</param>
+           <param>credstash</param>
+       </packages>
+       <versionedPackages>
+            <ansible>2.2.1.0</ansible>
+       </versionedPackages>
+   </configuration>
+</execution>
+```
+All supported parameters include:
+- packages (default: null, maven command line variable: python.packages): list of Python module you'd like to install in this Python virtual environment. For each module listed inside a <param> element, Pip will try to install the latest version of this module in the virtual environment.
+- versionedPackages (default: null, maven command line variable: python.versionedPackages): list of Python module you'd like to install in this Python virtual environment with particular version. Since versionedPackages is defined as a map, this module inside should define as <module_name>version</module_name> format. For each module defined, Pip will try to install the desired version in the virtual environment.
+- rebuild (default: false, maven command line variable: python.rebuild): whether plugin should destroy the existing Python virtual environment and create a new one during build. This plugin will save Python virtual environment under cloud.envToolDir/python-env folder. An existing virtual environment will be used for each build until this parameter is set to true.
 ## Variable value look up
 All variables pass into plugin are defined in JSON file and passed in through variable executor. This plugin has too built in value finder which support value look up in properties file or credstash table. The later is AWS only.
 - [Define cloud variable in JSON](#define-cloud-variable-in-json)
