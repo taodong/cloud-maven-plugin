@@ -230,6 +230,7 @@ All supported parameters include:
 - lookupFolder (default: src, maven command line variable: cloud.variable.lookupFolder): the folder to locate the configFile, by default the code will try to find the configFile in src folder.
 ### Use Python virtual environment
 In curtain situation, you might want to use different version of Ansible to test your project. If you installed Ansible through Pip in your local machine, this plugin has a python-env executor built in to provide some leverage of using Python virtual environment. However due to limitation of running Linux build in command such as "source" through Java runtime, this executor works only when cloud.genScriptOnly is set to true. A successful output of this executor will be a shell script "python-env.sh" under target folder. User has to manually executor this script to enable Python virtual environment.
+**To enable python virtual environment, please run python-env.sh by executing "source python-env.sh"**
 _Sample Configuration:_
 ```xml
 <execution>
