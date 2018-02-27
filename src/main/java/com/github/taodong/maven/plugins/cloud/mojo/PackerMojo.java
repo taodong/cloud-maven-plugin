@@ -158,7 +158,7 @@ public class PackerMojo extends CloudAbstractMojo{
                             CommandLine cmd = new CommandLine(exe);
                             cmd.addArgument("build").addArguments(arguments, true).addArguments(varFileArg, true).addArgument(image.getName());
                             if (genScript) {
-                                commands.add(Joiner.on(" ").skipNulls().join("pushd", image.getParent(), " > /dev/null"));
+                                commands.add(Joiner.on(" ").skipNulls().join("pushd", image.getParentFile().getAbsolutePath(), " > /dev/null"));
                                 commands.add(commandLine2Str(cmd));
                                 commands.add("popd > /dev/null");
                             } else {
