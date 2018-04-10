@@ -210,6 +210,7 @@ All supported parameters include:
 - format (default: null, maven command line variable: cloud.terragrunt.systemFormat): used when cloud.terragrunt.version is not "SYSTEM". It tells this plugin the disk format of target system. Available values include: 386, amd64, arm and arm64.
 - arguments (default: null, maven command line variable: cloud.terragrunt.arguments): command arguments to append after terragrunt command, such as apply, refresh, or destroy etc.
 - timeout (default: 900, maven command line variable: cloud.terragrunt.commandTimeOut): used when cloud.genScriptOnly is false. Timeout in seconds for maven build.
+- terraformVarFile (default: null, maven command line variable: cloud.terragrunt.terraformVarFile): terraform.tfvars file to copy into module
 ### Import custom variables
 Variables can be passed into plugin and applied during build process by using variable executor. All variables need to be defined in a json file. Please refer to [Variable value look up](#variable-value-look-up) section for specification.
 _Sample Configuration:_
@@ -281,6 +282,13 @@ _Sample Could Variable JSON:_
           "packer": "region",
           "terragrunt": "region"
         }
+      },
+      {
+        "name": "aws.eips",
+        "type": "list",
+        "toolVars": {
+          "terragrunt": "eips"
+        }
       }
     ]
   },
@@ -304,6 +312,7 @@ _Sample Could Variable JSON:_
 A variable element is defined as following:
 - name: variable name in source
 - required: is the variable is required
+- type: type of the variable, supported type: string, list and map. The value will be processed as string if type is missing
 - toolVars: variable name to pass into different build tools, current allow for property names inside: ansible, packer, terraform and terragrunt.
 ### Look up value in properties file
 To look up values in a properties file and pass them into the plugin, you need to define the following two properties in JSON
@@ -313,8 +322,10 @@ In the previous example, if you have the following properties in file aws.proper
 ```properties
 aws.username=tao.dong
 aws.region=us-east-1
+aws.eips=["eipalloc-12345", "eipalloc-45678"]
 ```
 The plugin will pass "user=tao.dong,region=us-east-1" to packer and "region=us-east-1" to terragrunt respectively.
+In above example, if aws.eips is defined as list, the plugin will passing value as "["eipalloc-12345", "eipalloc-45678"]", otherwise the value passed in will be "[\\"eipalloc-12345\\", \\"eipalloc-45678\\"]"
 ### Look up value through Credstash
 Credstash is tool to store sensitive data in AWS. This value finder functions only when building cloud on AWS. Also to use it, you have to install and configure Credstash locally, the plugin only calls credstash command in local environment to retrieve values. The properties needed for credstash are:
 - format: has to be "credstash" for credstash look up

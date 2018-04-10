@@ -84,7 +84,7 @@ public class PackerMojo extends CloudAbstractMojo{
                 if (packerFolder.exists() && packerFolder.isDirectory()) {
                     StringJoiner sj = new StringJoiner("").add("");
 
-                    Map<String, String> packerVars = cloudVariables.get(CloudTool.PACKER);
+                    Map<String, Object> packerVars = cloudVariables.get(CloudTool.PACKER);
                     if (packerVars != null && !packerVars.isEmpty()) {
                         getLog().info("Found extra variables passed through Clound Variable plugin. Generating variables.json.");
                         File tempFolder = new File(buildFolder, TEMP);

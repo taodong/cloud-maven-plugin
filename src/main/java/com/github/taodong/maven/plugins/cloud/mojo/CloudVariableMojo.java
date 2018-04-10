@@ -3,6 +3,7 @@ package com.github.taodong.maven.plugins.cloud.mojo;
 import com.github.taodong.maven.plugins.cloud.finder.*;
 import com.github.taodong.maven.plugins.cloud.utils.CloudVariableConfig;
 import com.github.taodong.maven.plugins.cloud.utils.CloudVariableLoader;
+import com.github.taodong.maven.plugins.cloud.utils.DataUtils;
 import com.github.taodong.maven.plugins.cloud.utils.FileIOUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
@@ -103,16 +104,34 @@ public class CloudVariableMojo extends CloudAbstractMojo {
         variables.stream().forEach(variable -> {
             final String variableName = variable.getName();
 
-            final String value = valueFinder.lookup(variableName);
+            final String valueStr = valueFinder.lookup(variableName);
             final boolean isRequired = variable.isRequired();
-            if (isRequired && StringUtils.isBlank(value)) {
+            if (isRequired && StringUtils.isBlank(valueStr)) {
                 throw new NoValueFoundException(variableName);
             }
 
-            if (StringUtils.isNotBlank(value)) {
+            if (StringUtils.isNotBlank(valueStr)) {
                 Map<String, String> toolVars = variable.getToolVars();
                 toolVars.entrySet().stream().forEach(entry -> {
-                    boolean rs = saveCloudVariable(entry.getKey(), entry.getValue(), value);
+                    String variableType = variable.getType();
+                    boolean rs = false;
+                    if (StringUtils.equalsIgnoreCase("list", variableType)) {
+                        List<String> listVals = DataUtils.stringToList(valueStr);
+                        if (listVals == null) {
+                            rs = false;
+                        } else {
+                            rs = saveCloudVariable(entry.getKey(), entry.getValue(), listVals);
+                        }
+                    } else if (StringUtils.equalsIgnoreCase("map", variableType)) {
+                        Map<String, String> mapVals = DataUtils.stringToMap(valueStr);
+                        if (mapVals == null) {
+                            rs = false;
+                        } else {
+                            rs = saveCloudVariable(entry.getKey(), entry.getValue(), mapVals);
+                        }
+                    } else {
+                        rs = saveCloudVariable(entry.getKey(), entry.getValue(), valueStr);
+                    }
                     if (!rs) {
                         String message = Joiner.on(" ").skipNulls().join("Failed to process value of", entry.getValue(), "for", entry.getKey());
                         if (isRequired) {

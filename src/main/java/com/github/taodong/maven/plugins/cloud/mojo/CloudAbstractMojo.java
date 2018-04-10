@@ -22,7 +22,7 @@ public abstract class CloudAbstractMojo extends AbstractMojo {
 
     protected static final String SHELL_HEADER = "#!/bin/bash";
 
-    protected static final Map<CloudTool, Map<String, String>> cloudVariables = new HashMap<>();
+    protected static final Map<CloudTool, Map<String, Object>> cloudVariables = new HashMap<>();
 
 
     /**
@@ -62,10 +62,10 @@ public abstract class CloudAbstractMojo extends AbstractMojo {
     protected File customScriptTail;
 
 
-    protected synchronized boolean saveCloudVariable(final String toolName, final String variableName, final String variableValue) {
+    protected synchronized boolean saveCloudVariable(final String toolName, final String variableName, final Object variableValue) {
         CloudTool cloudTool = CloudTool.getCloudToolByName(toolName);
         if (cloudTool != null && cloudTool != CloudTool.UNKNOWN) {
-            Map<String, String> valueMap = cloudVariables.get(cloudTool);
+            Map<String, Object> valueMap = cloudVariables.get(cloudTool);
             if (valueMap == null) {
                 valueMap = new HashMap<>();
                 cloudVariables.put(cloudTool, valueMap);

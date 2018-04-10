@@ -95,7 +95,7 @@ public class AnsibleMojo extends CloudAbstractMojo {
                         commandLine.addArgument(arguments, true);
                     }
 
-                    Map<String, String> ansibleVars = cloudVariables.get(CloudTool.ANSIBLE);
+                    Map<String, Object> ansibleVars = cloudVariables.get(CloudTool.ANSIBLE);
                     if (ansibleVars != null && !ansibleVars.isEmpty()) {
                         getLog().info("Found extra variables passed through Clound Variable plugin. Generating variables.json.");
                         File tempFolder = new File(buildFolder, TEMP);

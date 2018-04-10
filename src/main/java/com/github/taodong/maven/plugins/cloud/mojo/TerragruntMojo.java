@@ -17,6 +17,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +69,9 @@ public class TerragruntMojo  extends CloudAbstractMojo {
      */
     @Parameter(property = "cloud.terragrunt.commandTimeOut", defaultValue = "900")
     protected long timeout;
+
+    @Parameter(property = "cloud.terragrunt.terraformVarFile")
+    protected File terraformVarFile;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -139,7 +143,7 @@ public class TerragruntMojo  extends CloudAbstractMojo {
 
                     StringJoiner sj = new StringJoiner("").add("");
 
-                    Map<String, String> terragruntVars = cloudVariables.get(CloudTool.TERRAGRUNT);
+                    Map<String, Object> terragruntVars = cloudVariables.get(CloudTool.TERRAGRUNT);
                     if (terragruntVars != null && !terragruntVars.isEmpty()) {
                         getLog().info("Found extra variables passed through Clound Variable plugin. Generating variables.tfvars.");
                         File tempFolder = new File(buildFolder, TEMP);
@@ -181,6 +185,16 @@ public class TerragruntMojo  extends CloudAbstractMojo {
                     }
 
                     moduleFolders.stream().forEach(module -> {
+                        // Copy terraform.tfvars into module
+                        if (terraformVarFile != null && terraformVarFile.isFile()) {
+                            File tfVarDest = new File(module, "terraform.tfvars");
+                            try {
+                                FileIOUtils.copyFileTo(terraformVarFile, tfVarDest);
+                            } catch (IOException ioe) {
+                                getLog().error("Failed to copy terraform.tfvars file.", ioe);
+                            }
+                        }
+
                         if (genScript) {
                             content.add(Joiner.on(" ").skipNulls().join("pushd", module.getAbsolutePath(), " > /dev/null"));
                             for (CommandLine cl : commands) {

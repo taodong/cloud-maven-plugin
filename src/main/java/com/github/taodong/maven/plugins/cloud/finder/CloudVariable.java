@@ -1,11 +1,11 @@
 package com.github.taodong.maven.plugins.cloud.finder;
 
-import java.util.List;
 import java.util.Map;
 
 public class CloudVariable {
     private String name;
     private String value;
+    private String type;
     private boolean required = false;
     private Map<String, String> toolVars;
 
@@ -39,5 +39,13 @@ public class CloudVariable {
 
     public void setRequired(boolean required) {
         this.required = required;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

@@ -9,7 +9,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.fluent.Request;
-import org.codehaus.plexus.classworlds.ClassWorld;
 
 import java.io.*;
 import java.util.*;
@@ -209,6 +208,18 @@ public class FileIOUtils {
                     // Do nothing
                 }
             }
+        }
+    }
+
+    /**
+     * Copy file to another destination, overwrite the destination if exists
+     * @param src - source file
+     * @param dest - destination file
+     * @throws IOException
+     */
+    public static void copyFileTo(File src, File dest) throws IOException {
+        if (src != null && src.exists() && src.isFile()) {
+            FileUtils.copyFile(src, dest);
         }
     }
 

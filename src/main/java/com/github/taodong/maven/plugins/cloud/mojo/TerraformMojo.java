@@ -137,7 +137,7 @@ public class TerraformMojo extends CloudAbstractMojo {
 
                     StringJoiner sj = new StringJoiner("").add("");
 
-                    Map<String, String> terraformVars = cloudVariables.get(CloudTool.TERRAFORM);
+                    Map<String, Object> terraformVars = cloudVariables.get(CloudTool.TERRAFORM);
                     if (terraformVars != null && !terraformVars.isEmpty()) {
                         getLog().info("Found extra variables passed through Clound Variable plugin. Generating variables.tfvars.");
                         File tempFolder = new File(buildFolder, TEMP);
