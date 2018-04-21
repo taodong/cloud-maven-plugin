@@ -13,7 +13,16 @@ This plugin contains six executors. Four major executors (ansible, packer, terra
 * Ansible local installation is required if you need to run packer or ansible executor
 
 ## Installation
-Download source code and run "mvn install" locally. I'll release it to Maven Central repository when the code is stable.
+Include the plugin as a dependency in your Maven project. Replace LATEST_VERSION with the latest tagged version.
+```xml
+<dependencies>
+    <dependency>
+        <groupId>com.github.taodong</groupId>
+        <artifactId>cloud-maven-plugin</artifactId>
+        <version>LATEST_VERSION</version>
+    </dependency>
+</dependencies>
+```
 
 After installation, you can add cloud-maven-plugin configuration into the pom.xml of your project. By default it will create script build.sh under your target folder if you run command "mvn install". The build.sh will contains commands to build your infrastructure in the cloud. The following is a sample usage in pom.xml.
 ```xml
