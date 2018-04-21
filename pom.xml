@@ -6,7 +6,7 @@
 
     <groupId>com.github.taodong</groupId>
     <artifactId>cloud-maven-plugin</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
     <name>Cloud Development Maven Plugin</name>
     <packaging>maven-plugin</packaging>
     <description>Maven plugin used for cloud infrastructure development</description>
