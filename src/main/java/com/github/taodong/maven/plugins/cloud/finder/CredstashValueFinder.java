@@ -9,7 +9,6 @@ import org.apache.maven.plugin.logging.Log;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 public class CredstashValueFinder implements ValueFinder{
