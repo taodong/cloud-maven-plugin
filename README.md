@@ -21,7 +21,7 @@ Include the plugin as a dependency in your Maven project.
     <dependency>
         <groupId>com.github.taodong</groupId>
         <artifactId>cloud-maven-plugin</artifactId>
-        <version>LATEST_VERSION</version>
+        <version>0.1.0</version>
     </dependency>
 </dependencies>
 ```
