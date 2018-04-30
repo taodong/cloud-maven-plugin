@@ -3,6 +3,8 @@ Maven plugin helping on building infrastructure in cloud use cloud build tools: 
 
 This plugin contains six executors. Four major executors (ansible, packer, terraform and terragrunt), each runs cloud build tool respectively and is exclusive to the others. Executor "variables" allows user to pass variables into plugin. The last Executor "assemble" is used to assemble file structure. 
 
+**A sample usage of this plugin can be found at https://github.com/taodong/kafka_broker_cluster_in_aws**
+
 ## Requirement
 * Linux or Mac system only
 * Java 8 or later required
@@ -13,7 +15,7 @@ This plugin contains six executors. Four major executors (ansible, packer, terra
 * Ansible local installation is required if you need to run packer or ansible executor
 
 ## Installation
-Include the plugin as a dependency in your Maven project. Replace LATEST_VERSION with the latest tagged version.
+Include the plugin as a dependency in your Maven project.
 ```xml
 <dependencies>
     <dependency>
